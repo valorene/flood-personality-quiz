@@ -1,0 +1,559 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>What's Your Flood Personality?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --cream:#FBF6EC;
+    --cream-2:#F3ECDC;
+    --ink:#23253A;
+    --ink-soft:#565873;
+    --rain:#3E6E9E;
+    --rain-deep:#274A6B;
+    --puddle:#AFD0E3;
+    --amber:#F2A65A;
+    --coral:#E8735A;
+    --leaf:#7FB069;
+    --card-radius: 28px;
+    --shadow: 0 12px 30px rgba(39,74,107,0.14);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Nunito',sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+    -webkit-tap-highlight-color:transparent;
+  }
+  h1,h2,h3,.display{font-family:'Baloo 2',cursive;font-weight:700;}
+  .screen{
+    min-height:100vh;
+    min-height:100dvh;
+    width:100%;
+    max-width:480px;
+    margin:0 auto;
+    position:relative;
+    display:none;
+    flex-direction:column;
+    padding:0 20px 40px;
+  }
+  .screen.active{display:flex;}
+  button{font-family:inherit;}
+  .visually-hidden{
+    position:absolute; width:1px;height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
+  :focus-visible{outline:3px solid var(--rain-deep); outline-offset:3px; border-radius:8px;}
+
+  /* ---------- Rain background ---------- */
+  .rain-layer{
+    position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:0;
+    border-radius:0 0 40px 40px;
+  }
+  .drop{
+    position:absolute; top:-40px; width:2px; height:18px; border-radius:2px;
+    background:linear-gradient(var(--puddle), transparent);
+    animation:fall linear infinite;
+  }
+  @keyframes fall{
+    to{ transform:translateY(120vh); }
+  }
+  .puddle-strip{
+    position:absolute; left:0; right:0; bottom:0; height:64px;
+    background:var(--rain-deep);
+    border-radius:50% 50% 0 0 / 100% 100% 0 0;
+    transform:scaleX(1.4);
+    opacity:0.9;
+  }
+
+  /* ---------- Landing screen ---------- */
+  #landing{ padding-top:28px; align-items:stretch; z-index:1; }
+  .scene-wrap{
+    position:relative; height:260px; border-radius:26px; overflow:hidden;
+    background:linear-gradient(180deg, #6C9CC7 0%, var(--rain) 55%, var(--rain-deep) 100%);
+    box-shadow:var(--shadow);
+    margin-bottom:22px;
+  }
+  .scene-wrap svg{position:absolute; inset:0; width:100%; height:100%;}
+  .disclaimer-top{
+    font-size:12.5px; color:var(--ink-soft); text-align:center; margin:2px 0 14px;
+    opacity:0.85;
+  }
+  .kicker{
+    display:inline-block; background:var(--amber); color:var(--ink);
+    font-weight:800; font-size:12px; letter-spacing:0.06em; text-transform:uppercase;
+    padding:6px 12px; border-radius:100px; margin-bottom:10px;
+  }
+  .challenge-banner{
+    display:flex; align-items:center; gap:12px; background:#fff; border-radius:18px;
+    padding:12px 14px; margin-bottom:16px; box-shadow:var(--shadow);
+    animation:riseIn .4s ease;
+  }
+  .challenge-avatar{ width:52px; height:52px; flex:none; border-radius:50%; background:var(--cream-2); display:flex; align-items:center; justify-content:center; }
+  .challenge-avatar svg{ width:42px; height:42px; }
+  .challenge-text{ font-size:13.5px; line-height:1.4; color:var(--ink-soft); }
+  .challenge-text strong{ color:var(--ink); font-family:'Baloo 2',cursive; font-size:14.5px; }
+  .challenge-text span{ font-weight:800; color:var(--rain-deep); }
+  .headline{ font-size:30px; line-height:1.15; margin:0 0 10px; }
+  .subhead{ font-size:16.5px; color:var(--ink-soft); font-weight:700; margin:0 0 18px; line-height:1.4;}
+  .brief-list{
+    list-style:none; margin:0 0 26px; padding:0; font-size:16px; font-weight:700; color:var(--rain-deep);
+    display:flex; flex-direction:column; gap:4px;
+  }
+  .cta-primary{
+    background:var(--coral); color:#fff; border:none; border-radius:100px;
+    font-family:'Baloo 2',cursive; font-size:20px; font-weight:700; padding:17px 20px;
+    box-shadow:0 8px 0 #C1583F; cursor:pointer; width:100%;
+    transition:transform .08s ease;
+  }
+  .cta-primary:active{ transform:translateY(6px); box-shadow:0 2px 0 #C1583F; }
+  .disclaimer-bottom{
+    text-align:center; font-size:12px; color:var(--ink-soft); margin-top:14px; opacity:0.8;
+  }
+  .flavor-text{
+    margin-top:30px; background:var(--cream-2); border-radius:18px; padding:14px 16px;
+    font-size:13.5px; color:var(--ink-soft); line-height:1.5; text-align:center;
+  }
+
+  /* ---------- Quiz screen ---------- */
+  #quiz{ padding-top:22px; z-index:1; }
+  .progress-row{ display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+  .progress-track{
+    flex:1; height:10px; background:var(--cream-2); border-radius:100px; overflow:hidden;
+  }
+  .progress-fill{
+    height:100%; background:linear-gradient(90deg, var(--rain), var(--leaf));
+    border-radius:100px; width:0%; transition:width .35s ease;
+  }
+  .progress-label{ font-weight:800; font-size:14px; color:var(--rain-deep); white-space:nowrap; font-family:'Baloo 2',cursive;}
+  .q-icon-wrap{
+    width:100%; height:150px; border-radius:22px; background:var(--cream-2);
+    display:flex; align-items:center; justify-content:center; margin-bottom:16px;
+    box-shadow:inset 0 0 0 1px rgba(39,74,107,0.06);
+  }
+  .q-icon-wrap svg{ width:120px; height:120px; }
+  .q-scenario{ font-size:18px; line-height:1.45; font-weight:800; margin:0 0 16px; color:var(--ink); }
+  .answers{ display:flex; flex-direction:column; gap:10px; }
+  .answer-btn{
+    text-align:left; background:#fff; border:2px solid var(--cream-2); border-radius:18px;
+    padding:14px 16px; font-size:15.5px; font-weight:700; color:var(--ink);
+    cursor:pointer; box-shadow:0 3px 0 var(--cream-2);
+    transition:transform .1s ease, border-color .15s ease, background .15s ease;
+  }
+  .answer-btn:active{ transform:translateY(2px); }
+  .answer-btn.selected{
+    border-color:var(--rain); background:#EAF2F9;
+    animation:pop .28s ease;
+  }
+  .answer-btn.dimmed{ opacity:0.45; }
+  .answer-btn[disabled]{ cursor:default; }
+  @keyframes pop{
+    0%{ transform:scale(1); } 40%{ transform:scale(1.03); } 100%{ transform:scale(1); }
+  }
+  .feedback{
+    margin-top:16px; background:#fff; border-radius:20px; padding:16px;
+    box-shadow:var(--shadow); display:none; opacity:0; transform:translateY(8px);
+  }
+  .feedback.show{ display:block; animation:riseIn .32s ease forwards; }
+  @keyframes riseIn{ to{ opacity:1; transform:translateY(0); } }
+  .feedback .reaction{ font-family:'Baloo 2',cursive; font-size:16.5px; margin-bottom:6px; color:var(--rain-deep); }
+  .feedback .tip{ font-size:14.5px; line-height:1.5; color:var(--ink-soft); }
+  .next-btn{
+    margin-top:16px; width:100%; background:var(--rain); color:#fff; border:none;
+    border-radius:100px; font-family:'Baloo 2',cursive; font-size:17px; font-weight:700;
+    padding:14px; cursor:pointer; box-shadow:0 6px 0 var(--rain-deep); display:none;
+  }
+  .next-btn.show{ display:block; animation:riseIn .3s ease .05s both; }
+  .next-btn:active{ transform:translateY(4px); box-shadow:0 2px 0 var(--rain-deep); }
+
+  /* ---------- Result screen ---------- */
+  #result{ padding-top:26px; z-index:1; align-items:stretch; }
+
+  /* ---------- Reveal / suspense screen ---------- */
+  #reveal{ align-items:center; justify-content:center; text-align:center; z-index:1; }
+  .reveal-visual{ position:relative; width:112px; height:112px; display:flex; align-items:center; justify-content:center; margin-bottom:6px; }
+  .reveal-ring{ position:absolute; inset:0; border-radius:50%; border:4px solid var(--rain); animation:ringPulse 1.3s ease-out infinite; }
+  .reveal-ring.ring2{ animation-delay:.45s; border-color:var(--puddle); }
+  .reveal-drop{ font-size:42px; position:relative; z-index:2; animation:dropBounce 1s ease-in-out infinite; }
+  @keyframes ringPulse{ 0%{ transform:scale(0.55); opacity:0.9; } 100%{ transform:scale(1.5); opacity:0; } }
+  @keyframes dropBounce{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-10px); } }
+  .reveal-text{ font-family:'Baloo 2',cursive; font-size:17px; color:var(--rain-deep); margin-top:8px; min-height:24px; transition:opacity .2s ease; }
+
+  .stagger-item{ opacity:0; }
+  .result-card{
+    background:linear-gradient(180deg, #fff 0%, #fff 70%, var(--cream-2) 100%);
+    border-radius:var(--card-radius); padding:26px 22px 22px; box-shadow:var(--shadow);
+    position:relative; overflow:hidden;
+  }
+  .result-eyebrow{ text-align:center; font-size:12px; font-weight:800; letter-spacing:0.14em;
+    text-transform:uppercase; color:var(--ink-soft); margin-bottom:4px; }
+  .result-you-are{ text-align:center; font-size:13px; font-weight:800; color:var(--rain-deep); letter-spacing:0.08em; text-transform:uppercase; }
+  .char-stage{
+    position:relative; height:200px; display:flex; align-items:center; justify-content:center;
+    margin:6px 0 2px;
+  }
+  .char-stage svg.character{ width:150px; height:150px; opacity:0; transform:translateY(14px) scale(0.9);
+    animation:charIn .55s cubic-bezier(.2,.9,.3,1.1) .1s forwards; position:relative; z-index:2; }
+  .char-stage svg.reflection{
+    width:150px; height:75px; position:absolute; bottom:6px; opacity:0;
+    transform:scaleY(-1); filter:blur(1px);
+    -webkit-mask-image:linear-gradient(to bottom, rgba(0,0,0,0.35), transparent);
+    mask-image:linear-gradient(to bottom, rgba(0,0,0,0.35), transparent);
+    animation:reflIn .6s ease .25s forwards;
+  }
+  .puddle-ellipse{
+    position:absolute; bottom:2px; width:120px; height:22px; border-radius:50%;
+    background:radial-gradient(ellipse at center, rgba(62,110,158,0.35), rgba(62,110,158,0));
+    z-index:1;
+  }
+  @keyframes charIn{ to{ opacity:1; transform:translateY(0) scale(1); } }
+  @keyframes reflIn{ to{ opacity:0.55; } }
+  .result-name{ text-align:center; font-size:25px; margin:2px 0 2px; }
+  .result-tagline{ text-align:center; font-size:15.5px; font-weight:700; color:var(--coral); margin:0 0 12px; font-style:italic; }
+  .result-desc{ text-align:center; font-size:14.5px; color:var(--ink-soft); line-height:1.5; margin:0 0 18px; padding:0 4px;}
+  .dims{ display:flex; flex-direction:column; gap:10px; margin-bottom:18px; }
+  .dim-row .dim-label{ display:flex; justify-content:space-between; font-size:12px; font-weight:800; color:var(--rain-deep); letter-spacing:0.04em; text-transform:uppercase; margin-bottom:4px; }
+  .dim-track{ height:10px; background:var(--cream-2); border-radius:100px; overflow:hidden; }
+  .dim-fill{ height:100%; border-radius:100px; width:0%; transition:width 1s cubic-bezier(.2,.8,.3,1); }
+  .callout{ background:var(--cream-2); border-radius:16px; padding:14px 16px; margin-bottom:10px; }
+  .callout h3{ font-size:12.5px; text-transform:uppercase; letter-spacing:0.06em; margin:0 0 6px; color:var(--rain-deep); }
+  .callout p{ margin:0; font-size:14.5px; line-height:1.5; }
+  .callout .emoji{ font-size:20px; margin-right:6px; }
+  .compat-section{ margin-bottom:10px; }
+  .compat-heading{ font-size:12.5px; text-transform:uppercase; letter-spacing:0.06em; margin:14px 0 8px; color:var(--rain-deep); font-weight:800; }
+  .compat-heading.clash{ color:var(--coral); }
+  .compat-row{
+    display:flex; align-items:center; gap:12px; background:var(--cream-2);
+    border-radius:16px; padding:10px 12px; margin-bottom:8px;
+  }
+  .compat-row.clash{ background:#FBEAE6; }
+  .compat-avatar{ width:44px; height:44px; flex:none; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(39,74,107,0.12); }
+  .compat-avatar svg{ width:34px; height:34px; }
+  .compat-text{ font-size:13.5px; line-height:1.4; }
+  .compat-text .compat-name{ font-family:'Baloo 2',cursive; font-size:14.5px; display:block; margin-bottom:1px; color:var(--ink); }
+  .compat-text .compat-reason{ color:var(--ink-soft); }
+
+  /* ---------- Compare section (challenge link result) ---------- */
+  .compare-section{
+    margin-top:16px; padding-top:16px; border-top:2px dashed var(--cream-2);
+  }
+  .compare-heading{
+    text-align:center; font-family:'Baloo 2',cursive; font-size:16px; color:var(--ink);
+    margin-bottom:14px;
+  }
+  .compare-heading span{ color:var(--coral); }
+  .compare-chars{ display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:14px; }
+  .compare-side{ flex:1; display:flex; flex-direction:column; align-items:center; text-align:center; max-width:110px; }
+  .compare-avatar{ width:64px; height:64px; border-radius:50%; background:var(--cream-2); display:flex; align-items:center; justify-content:center; margin-bottom:6px; }
+  .compare-avatar svg{ width:52px; height:52px; }
+  .compare-label{ font-size:11px; text-transform:uppercase; letter-spacing:0.05em; font-weight:800; color:var(--ink-soft); }
+  .compare-pname{ font-family:'Baloo 2',cursive; font-size:13.5px; color:var(--ink); line-height:1.25; }
+  .compare-vs{
+    font-family:'Baloo 2',cursive; font-size:15px; color:#fff; background:var(--rain-deep);
+    width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:none;
+  }
+  .compare-traits{
+    display:flex; flex-direction:column; gap:6px; background:var(--cream-2); border-radius:14px;
+    padding:12px 14px; margin-bottom:12px; font-size:14px; font-weight:700; color:var(--rain-deep); text-align:center;
+  }
+  .compare-scenario{ background:#FBEAE6; border-radius:14px; padding:12px 14px; }
+  .compare-scenario h3{ font-size:12px; text-transform:uppercase; letter-spacing:0.05em; margin:0 0 6px; color:var(--coral); }
+  .compare-scenario p{ margin:0; font-size:14px; line-height:1.5; color:var(--ink); }
+
+  .name-input-row{ margin-bottom:2px; }
+  .name-label{ display:block; font-size:12px; color:var(--ink-soft); font-weight:700; margin-bottom:6px; text-align:center; }
+  .name-input{
+    width:100%; border:2px solid var(--cream-2); border-radius:100px; padding:11px 16px;
+    font-family:'Nunito',sans-serif; font-size:14.5px; font-weight:700; color:var(--ink);
+    background:#fff; text-align:center;
+  }
+  .name-input:focus{ border-color:var(--rain); }
+  .result-actions{ margin-top:18px; display:flex; flex-direction:column; gap:10px; }
+  .share-btn{
+    background:var(--coral); color:#fff; border:none; border-radius:100px; font-family:'Baloo 2',cursive;
+    font-size:17px; font-weight:700; padding:15px; cursor:pointer; box-shadow:0 6px 0 #C1583F;
+  }
+  .share-btn:active{ transform:translateY(4px); box-shadow:0 2px 0 #C1583F; }
+  .retake-btn{
+    background:transparent; color:var(--rain-deep); border:2px solid var(--rain-deep); border-radius:100px;
+    font-family:'Baloo 2',cursive; font-size:16px; font-weight:700; padding:13px; cursor:pointer;
+  }
+  .share-status{ text-align:center; font-size:12.5px; color:var(--ink-soft); margin-top:6px; min-height:16px; }
+
+  /* Hidden export card for image generation */
+  #exportCard{
+    position:fixed; left:-9999px; top:0; width:390px; min-height:693px; height:auto;
+    background:linear-gradient(165deg, var(--rain) 0%, var(--rain-deep) 55%, var(--ink) 100%);
+    border-radius:0; display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+    padding:36px 26px; font-family:'Nunito',sans-serif; color:#fff;
+  }
+  #exportCard .ex-kicker{ font-family:'Baloo 2',cursive; font-size:14px; letter-spacing:0.08em; text-transform:uppercase; opacity:0.85; margin-bottom:18px;}
+  #exportCard .ex-char{ width:170px; height:170px; margin-bottom:6px; }
+  #exportCard .ex-puddle{ width:170px; height:36px; margin-bottom:14px; opacity:0.5; }
+  #exportCard .ex-name{ font-family:'Baloo 2',cursive; font-size:28px; text-align:center; margin:0 0 6px; }
+  #exportCard .ex-tag{ font-size:16px; font-style:italic; opacity:0.9; margin:0 0 16px; text-align:center; }
+  #exportCard .ex-desc{ font-size:14.5px; text-align:center; line-height:1.5; opacity:0.95; padding:0 6px; }
+  #exportCard .ex-callout{ width:100%; background:rgba(255,255,255,0.14); border-radius:14px; padding:10px 14px; margin-top:12px; }
+  #exportCard .ex-callout-label{ font-family:'Baloo 2',cursive; font-size:12px; text-transform:uppercase; letter-spacing:0.04em; opacity:0.85; display:block; margin-bottom:3px; }
+  #exportCard .ex-callout p{ margin:0; font-size:13.5px; line-height:1.45; }
+  #exportCard .ex-cta{
+    margin-top:20px; width:100%; text-align:center; background:var(--amber); color:var(--ink);
+    border-radius:100px; padding:12px 14px; font-family:'Baloo 2',cursive; font-size:15px; font-weight:700;
+    line-height:1.35; box-shadow:0 4px 0 #C9843C;
+  }
+  #exportCard .ex-cta span{ font-family:'Nunito',sans-serif; font-size:12.5px; font-weight:700; opacity:0.85; word-break:break-all; }
+  #exportCard .ex-footer{ margin-top:14px; text-align:center; font-family:'Nunito',sans-serif; font-size:11.5px; opacity:0.7; padding-top:2px; }
+  #exportCard .ex-compat-block{ width:100%; margin-top:14px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.25); }
+  #exportCard .ex-compat-heading{ font-family:'Baloo 2',cursive; font-size:13.5px; text-transform:uppercase; letter-spacing:0.05em; opacity:0.9; margin:0 0 8px; }
+  #exportCard .ex-compat-heading.clash{ margin-top:16px; }
+  #exportCard .ex-compat-row{ display:flex; flex-direction:column; gap:8px; }
+  #exportCard .ex-compat-item{ display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.12); border-radius:14px; padding:7px 10px; }
+  #exportCard .ex-compat-avatar{ width:34px; height:34px; flex:none; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; }
+  #exportCard .ex-compat-avatar svg{ width:26px; height:26px; }
+  #exportCard .ex-compat-name{ font-size:13.5px; font-weight:800; }
+
+  @media (min-width:600px){
+    .headline{ font-size:34px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ LANDING ============ -->
+<main id="landing" class="screen active" aria-live="polite">
+  <div class="scene-wrap" aria-hidden="true">
+    <svg viewBox="0 0 400 260" xmlns="http://www.w3.org/2000/svg">
+      <!-- sky already via css bg -->
+      <g id="rainDrops"></g>
+      <!-- HDB blocks -->
+      <rect x="20" y="120" width="70" height="110" rx="4" fill="#DDEAF3" opacity="0.9"></rect>
+      <rect x="30" y="132" width="14" height="14" rx="2" fill="#3E6E9E" opacity="0.5"></rect>
+      <rect x="50" y="132" width="14" height="14" rx="2" fill="#3E6E9E" opacity="0.5"></rect>
+      <rect x="30" y="152" width="14" height="14" rx="2" fill="#3E6E9E" opacity="0.5"></rect>
+      <rect x="50" y="152" width="14" height="14" rx="2" fill="#F2A65A" opacity="0.6"></rect>
+      <rect x="30" y="172" width="14" height="14" rx="2" fill="#3E6E9E" opacity="0.5"></rect>
+      <rect x="50" y="172" width="14" height="14" rx="2" fill="#3E6E9E" opacity="0.5"></rect>
+      <rect x="100" y="90" width="60" height="140" rx="4" fill="#E7F0F6" opacity="0.85"></rect>
+      <rect x="108" y="102" width="12" height="12" rx="2" fill="#274A6B" opacity="0.4"></rect>
+      <rect x="126" y="102" width="12" height="12" rx="2" fill="#274A6B" opacity="0.4"></rect>
+      <rect x="144" y="102" width="12" height="12" rx="2" fill="#274A6B" opacity="0.4"></rect>
+      <rect x="108" y="120" width="12" height="12" rx="2" fill="#274A6B" opacity="0.4"></rect>
+      <rect x="126" y="120" width="12" height="12" rx="2" fill="#F2A65A" opacity="0.5"></rect>
+      <rect x="144" y="120" width="12" height="12" rx="2" fill="#274A6B" opacity="0.4"></rect>
+      <!-- rain clouds -->
+      <ellipse cx="290" cy="55" rx="55" ry="22" fill="#F3ECDC" opacity="0.9"></ellipse>
+      <ellipse cx="330" cy="65" rx="40" ry="18" fill="#F3ECDC" opacity="0.9"></ellipse>
+      <ellipse cx="255" cy="65" rx="35" ry="16" fill="#F3ECDC" opacity="0.9"></ellipse>
+      <!-- road + puddle -->
+      <rect x="0" y="230" width="400" height="30" fill="#274A6B" opacity="0.55"></rect>
+      <ellipse cx="230" cy="242" rx="55" ry="9" fill="#AFD0E3" opacity="0.8"></ellipse>
+      <ellipse cx="120" cy="248" rx="30" ry="6" fill="#AFD0E3" opacity="0.6"></ellipse>
+      <!-- bus stop -->
+      <rect x="190" y="175" width="4" height="55" fill="#DDEAF3"></rect>
+      <rect x="176" y="170" width="60" height="8" rx="2" fill="#DDEAF3"></rect>
+      <!-- umbrella person -->
+      <g transform="translate(215,195)">
+        <path d="M0 20 Q14 -6 28 20 Z" fill="#E8735A"></path>
+        <rect x="12" y="18" width="4" height="20" rx="2" fill="#23253A"></rect>
+        <circle cx="14" cy="42" r="7" fill="#F3ECDC"></circle>
+        <rect x="9" y="48" width="10" height="16" rx="4" fill="#7FB069"></rect>
+      </g>
+      <!-- kopi cup -->
+      <g transform="translate(60,200)">
+        <rect x="0" y="6" width="20" height="20" rx="3" fill="#F2A65A"></rect>
+        <rect x="0" y="0" width="20" height="6" rx="2" fill="#fff"></rect>
+        <path d="M20 10 q8 2 0 10" stroke="#F2A65A" stroke-width="3" fill="none"></path>
+      </g>
+      <!-- otter -->
+      <g transform="translate(320,205)">
+        <ellipse cx="10" cy="18" rx="14" ry="9" fill="#8B5E3C"></ellipse>
+        <circle cx="20" cy="12" r="7" fill="#8B5E3C"></circle>
+        <circle cx="22" cy="10" r="1.3" fill="#23253A"></circle>
+      </g>
+    </svg>
+  </div>
+
+  <p class="disclaimer-top">Not affiliated with PUB. Probably.</p>
+
+  <div class="challenge-banner" id="challengeBanner" style="display:none;">
+    <div class="challenge-avatar" id="challengeAvatar"></div>
+    <div class="challenge-text">
+      <strong id="challengeName"></strong> got <span id="challengePersonality"></span>
+      <br>Think you're different? Find out.
+    </div>
+  </div>
+
+  <span class="kicker" id="landingKicker">Two-minute personality quiz</span>
+  <h1 class="headline" id="landingHeadline">🌧️ What's your flood personality?</h1>
+  <p class="subhead">When the rain comes down, what kind of Singaporean are you?</p>
+
+  <ul class="brief-list">
+    <li>7 situations.</li>
+    <li>Questionable decisions.</li>
+    <li>One very scientific answer.</li>
+  </ul>
+
+  <button class="cta-primary" id="startBtn">LET'S GO →</button>
+
+  <p class="flavor-text">Made for fun, flood awareness and extremely scientific personality testing.*<br><br>*The science is questionable. The flood tips are not.</p>
+</main>
+
+<!-- ============ QUIZ ============ -->
+<main id="quiz" class="screen" aria-live="polite">
+  <div class="progress-row">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-label" id="progressLabel">1 / 7</div>
+  </div>
+
+  <div class="q-icon-wrap" id="qIconWrap" aria-hidden="true"></div>
+
+  <h2 class="q-scenario" id="qScenario"></h2>
+
+  <div class="answers" id="answersWrap" role="group" aria-labelledby="qScenario"></div>
+
+  <div class="feedback" id="feedback">
+    <div class="reaction" id="reactionText"></div>
+    <div class="tip" id="tipText"></div>
+  </div>
+
+  <button class="next-btn" id="nextBtn">NEXT →</button>
+</main>
+
+<!-- ============ REVEAL (suspense) ============ -->
+<main id="reveal" class="screen">
+  <div class="reveal-visual">
+    <div class="reveal-ring"></div>
+    <div class="reveal-ring ring2"></div>
+    <div class="reveal-drop">💧</div>
+  </div>
+  <p class="reveal-text" id="revealText">Calculating your flood personality…</p>
+</main>
+
+<!-- ============ RESULT ============ -->
+<main id="result" class="screen">
+  <div class="result-card" id="resultCard">
+    <div class="result-eyebrow stagger-item">🌧️</div>
+    <div class="result-you-are stagger-item">You are...</div>
+    <div class="char-stage stagger-item">
+      <div class="puddle-ellipse" aria-hidden="true"></div>
+      <div id="charSlot"></div>
+    </div>
+    <h1 class="result-name stagger-item" id="resultName"></h1>
+    <p class="result-tagline stagger-item" id="resultTagline"></p>
+    <p class="result-desc stagger-item" id="resultDesc"></p>
+
+    <div class="dims stagger-item">
+      <div class="dim-row">
+        <div class="dim-label"><span>Situational Awareness</span><span id="dimAVal"></span></div>
+        <div class="dim-track"><div class="dim-fill" id="dimA" style="background:var(--rain);"></div></div>
+      </div>
+      <div class="dim-row">
+        <div class="dim-label"><span>Spontaneity</span><span id="dimSVal"></span></div>
+        <div class="dim-track"><div class="dim-fill" id="dimS" style="background:var(--coral);"></div></div>
+      </div>
+      <div class="dim-row">
+        <div class="dim-label"><span>Community</span><span id="dimCVal"></span></div>
+        <div class="dim-track"><div class="dim-fill" id="dimC" style="background:var(--leaf);"></div></div>
+      </div>
+      <div class="dim-row">
+        <div class="dim-label"><span>Preparedness</span><span id="dimPVal"></span></div>
+        <div class="dim-track"><div class="dim-fill" id="dimP" style="background:var(--amber);"></div></div>
+      </div>
+    </div>
+
+    <div class="callout stagger-item">
+      <h3>Your flood superpower</h3>
+      <p><span class="emoji" id="superEmoji"></span><span id="superText"></span></p>
+    </div>
+    <div class="callout stagger-item">
+      <h3>One thing to remember</h3>
+      <p><span class="emoji">🌊</span><span id="rememberText"></span></p>
+    </div>
+
+    <div class="compat-section stagger-item">
+      <div class="compat-heading">🤝 You'll vibe with</div>
+      <div id="vibesWrap"></div>
+      <div class="compat-heading clash">⚡ Might test your patience</div>
+      <div id="clashWrap"></div>
+    </div>
+
+    <div class="compare-section stagger-item" id="compareSection" style="display:none;">
+      <div class="compare-heading">⚔️ You vs <span id="cmpName"></span></div>
+      <div class="compare-chars">
+        <div class="compare-side">
+          <div class="compare-avatar" id="cmpYouChar"></div>
+          <div class="compare-label">You</div>
+          <div class="compare-pname" id="cmpYouName"></div>
+        </div>
+        <div class="compare-vs">VS</div>
+        <div class="compare-side">
+          <div class="compare-avatar" id="cmpThemChar"></div>
+          <div class="compare-label" id="cmpThemLabel"></div>
+          <div class="compare-pname" id="cmpThemName"></div>
+        </div>
+      </div>
+      <div class="compare-traits">
+        <p id="cmpTraitYou"></p>
+        <p id="cmpTraitThem"></p>
+      </div>
+      <div class="compare-scenario">
+        <h3>In a flood together...</h3>
+        <p id="cmpScenario"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="result-actions">
+    <div class="name-input-row">
+      <label for="yourName" class="name-label">Your name (optional — shown on your challenge link)</label>
+      <input type="text" id="yourName" maxlength="24" placeholder="e.g. Valerie" class="name-input" autocomplete="off">
+    </div>
+    <button class="share-btn" id="shareBtn">SHARE MY RESULT</button>
+    <button class="retake-btn" id="retakeBtn">RETAKE QUIZ</button>
+    <div class="share-status" id="shareStatus"></div>
+  </div>
+</main>
+
+<!-- Hidden export card used to render the share image -->
+<div id="exportCard">
+  <div class="ex-kicker">What's your flood personality?</div>
+  <div class="ex-char" id="exCharSlot"></div>
+  <svg class="ex-puddle" viewBox="0 0 150 32"><ellipse cx="75" cy="10" rx="70" ry="10" fill="white"></ellipse></svg>
+  <h2 class="ex-name" id="exName"></h2>
+  <p class="ex-tag" id="exTag"></p>
+  <p class="ex-desc" id="exDesc"></p>
+
+  <div class="ex-callout">
+    <span class="ex-callout-label">🦸 Flood superpower</span>
+    <p id="exSuper"></p>
+  </div>
+  <div class="ex-callout">
+    <span class="ex-callout-label">🌊 One thing to remember</span>
+    <p id="exRemember"></p>
+  </div>
+
+  <div class="ex-compat-block">
+    <div class="ex-compat-heading">🤝 Vibes with</div>
+    <div class="ex-compat-row" id="exVibesWrap"></div>
+    <div class="ex-compat-heading clash">⚡ Clashes with</div>
+    <div class="ex-compat-row" id="exClashWrap"></div>
+  </div>
+
+  <div class="ex-cta">🌧️ Take the quiz →<br><span id="exUrl"></span></div>
+  <div class="ex-footer">Not affiliated with PUB. Probably.</div>
+</div>
+
+
+</body>
+</html>
