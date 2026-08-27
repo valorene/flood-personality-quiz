@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>What's Your Flood Personality?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root{
+    --cream:#FBF6EC;
+    --cream-2:#F3ECDC;
+    --ink:#23253A;
+    --ink-soft:#565873;
+    --rain:#3E6E9E;
+    --rain-deep:#274A6B;
+    --puddle:#AFD0E3;
+    --amber:#F2A65A;
+    --coral:#E8735A;
+    --leaf:#7FB069;
+    --card-radius: 28px;
+    --shadow: 0 12px 30px rgba(39,74,107,0.14);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Nunito',sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+    -webkit-tap-highlight-color:transparent;
+  }
+  h1,h2,h3,.display{font-family:'Baloo 2',cursive;font-weight:700;}
+  .screen{
+    min-height:100vh;
+    min-height:100dvh;
+    width:100%;
+    max-width:480px;
+    margin:0 auto;
+    position:relative;
+    display:none;
+    flex-direction:column;
+    padding:0 20px 40px;
+  }
+  .screen.active{display:flex;}
+  button{font-family:inherit;}
+  .visually-hidden{
+    position:absolute; width:1px;height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
+  :focus-visible{outline:3px solid var(--rain-deep); outline-offset:3px; border-radius:8px;}
+
+  /* ---------- Rain background ---------- */
+  .rain-layer{
+    position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:0;
+    border-radius:0 0 40px 40px;
+  }
+  .drop{
+    position:absolute; top:-40px; width:2px; height:18px; border-radius:2px;
+    background:linear-gradient(var(--puddle), transparent);
+    animation:fall linear infinite;
+  }
+  @keyframes fall{
+    to{ transform:translateY(120vh); }
+  }
+  .puddle-strip{
+    position:absolute; left:0; right:0; bottom:0; height:64px;
+    background:var(--rain-deep);
+    border-radius:50% 50% 0 0 / 100% 100% 0 0;
+    transform:scaleX(1.4);
+    opacity:0.9;
+  }
+
+  /* ---------- Landing screen ---------- */
+  #landing{ padding-top:28px; align-items:stretch; z-index:1; }
+  .scene-wrap{
+    position:relative; height:260px; border-radius:26px; overflow:hidden;
+    background:linear-gradient(180deg, #6C9CC7 0%, var(--rain) 55%, var(--rain-deep) 100%);
+    box-shadow:var(--shadow);
+    margin-bottom:22px;
+  }
+  .scene-wrap svg{position:absolute; inset:0; width:100%; height:100%;}
+  .disclaimer-top{
+    font-size:12.5px; color:var(--ink-soft); text-align:center; margin:2px 0 14px;
+    opacity:0.85;
+  }
+  .kicker{
+    display:inline-block; background:var(--amber); color:var(--ink);
+    font-weight:800; font-size:12px; letter-spacing:0.06em; text-transform:uppercase;
+    padding:6px 12px; border-radius:100px; margin-bottom:10px;
+  }
+  .challenge-banner{
+    display:flex; align-items:center; gap:12px; background:#fff; border-radius:18px;
+    padding:12px 14px; margin-bottom:16px; box-shadow:var(--shadow);
+    animation:riseIn .4s ease;
+  }
+  .challenge-avatar{ width:52px; height:52px; flex:none; border-radius:50%; background:var(--cream-2); display:flex; align-items:center; justify-content:center; }
+  .challenge-avatar svg{ width:42px; height:42px; }
+  .challenge-text{ font-size:13.5px; line-height:1.4; color:var(--ink-soft); }
+  .challenge-text strong{ color:var(--ink); font-family:'Baloo 2',cursive; font-size:14.5px; }
+  .challenge-text span{ font-weight:800; color:var(--rain-deep); }
+  .headline{ font-size:30px; line-height:1.15; margin:0 0 10px; }
+  .subhead{ font-size:16.5px; color:var(--ink-soft); font-weight:700; margin:0 0 18px; line-height:1.4;}
+  .brief-list{
+    list-style:none; margin:0 0 26px; padding:0; font-size:16px; font-weight:700; color:var(--rain-deep);
+    display:flex; flex-direction:column; gap:4px;
+  }
+  .cta-primary{
+    background:var(--coral); color:#fff; border:none; border-radius:100px;
+    font-family:'Baloo 2',cursive; font-size:20px; font-weight:700; padding:17px 20px;
+    box-shadow:0 8px 0 #C1583F; cursor:pointer; width:100%;
+    transition:transform .08s ease;
+  }
+  .cta-primary:active{ transform:translateY(6px); box-shadow:0 2px 0 #C1583F; }
+  .disclaimer-bottom{
+    text-align:center; font-size:12px; color:var(--ink-soft); margin-top:14px; opacity:0.8;
+  }
+  .flavor-text{
+    margin-top:30px; background:var(--cream-2); border-radius:18px; padding:14px 16px;
+    font-size:13.5px; color:var(--ink-soft); line-height:1.5; text-align:center;
+  }
+
+  /* ---------- Quiz screen ---------- */
+  #quiz{ padding-top:22px; z-index:1; }
+  .progress-row{ display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+  .progress-track{
+    flex:1; height:10px; background:var(--cream-2); border-radius:100px; overflow:hidden;
+  }
+  .progress-fill{
+    height:100%; background:linear-gradient(90deg, var(--rain), var(--leaf));
+    border-radius:100px; width:0%; transition:width .35s ease;
+  }
+  .progress-label{ font-weight:800; font-size:14px; color:var(--rain-deep); white-space:nowrap; font-family:'Baloo 2',cursive;}
+  .q-icon-wrap{
+    width:100%; height:150px; border-radius:22px; background:var(--cream-2);
+    display:flex; align-items:center; justify-content:center; margin-bottom:16px;
+    box-shadow:inset 0 0 0 1px rgba(39,74,107,0.06);
+  }
+  .q-icon-wrap svg{ width:120px; height:120px; }
+  .q-scenario{ font-size:18px; line-height:1.45; font-weight:800; margin:0 0 16px; color:var(--ink); }
+  .answers{ display:flex; flex-direction:column; gap:10px; }
+  .answer-btn{
+    text-align:left; background:#fff; border:2px solid var(--cream-2); border-radius:18px;
+    padding:14px 16px; font-size:15.5px; font-weight:700; color:var(--ink);
+    cursor:pointer; box-shadow:0 3px 0 var(--cream-2);
+    transition:transform .1s ease, border-color .15s ease, background .15s ease;
+  }
+  .answer-btn:active{ transform:translateY(2px); }
+  .answer-btn.selected{
+    border-color:var(--rain); background:#EAF2F9;
+    animation:pop .28s ease;
+  }
+  .answer-btn.dimmed{ opacity:0.45; }
+  .answer-btn[disabled]{ cursor:default; }
+  @keyframes pop{
+    0%{ transform:scale(1); } 40%{ transform:scale(1.03); } 100%{ transform:scale(1); }
+  }
+  .feedback{
+    margin-top:16px; background:#fff; border-radius:20px; padding:16px;
+    box-shadow:var(--shadow); display:none; opacity:0; transform:translateY(8px);
+  }
+  .feedback.show{ display:block; animation:riseIn .32s ease forwards; }
+  @keyframes riseIn{ to{ opacity:1; transform:translateY(0); } }
+  .feedback .reaction{ font-family:'Baloo 2',cursive; font-size:16.5px; margin-bottom:6px; color:var(--rain-deep); }
+  .feedback .tip{ font-size:14.5px; line-height:1.5; color:var(--ink-soft); }
+  .next-btn{
+    margin-top:16px; width:100%; background:var(--rain); color:#fff; border:none;
+    border-radius:100px; font-family:'Baloo 2',cursive; font-size:17px; font-weight:700;
+    padding:14px; cursor:pointer; box-shadow:0 6px 0 var(--rain-deep); display:none;
+  }
+  .next-btn.show{ display:block; animation:riseIn .3s ease .05s both; }
+  .next-btn:active{ transform:translateY(4px); box-shadow:0 2px 0 var(--rain-deep); }
+
+  /* ---------- Result screen ---------- */
+  #result{ padding-top:26px; z-index:1; align-items:stretch; }
+
+  /* ---------- Reveal / suspense screen ---------- */
+  #reveal{ align-items:center; justify-content:center; text-align:center; z-index:1; }
+  .reveal-visual{ position:relative; width:112px; height:112px; display:flex; align-items:center; justify-content:center; margin-bottom:6px; }
+  .reveal-ring{ position:absolute; inset:0; border-radius:50%; border:4px solid var(--rain); animation:ringPulse 1.3s ease-out infinite; }
+  .reveal-ring.ring2{ animation-delay:.45s; border-color:var(--puddle); }
+  .reveal-drop{ font-size:42px; position:relative; z-index:2; animation:dropBounce 1s ease-in-out infinite; }
+  @keyframes ringPulse{ 0%{ transform:scale(0.55); opacity:0.9; } 100%{ transform:scale(1.5); opacity:0; } }
+  @keyframes dropBounce{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-10px); } }
+  .reveal-text{ font-family:'Baloo 2',cursive; font-size:17px; color:var(--rain-deep); margin-top:8px; min-height:24px; transition:opacity .2s ease; }
+
+  .stagger-item{ opacity:0; }
+  .result-card{
+    background:linear-gradient(180deg, #fff 0%, #fff 70%, var(--cream-2) 100%);
+    border-radius:var(--card-radius); padding:26px 22px 22px; box-shadow:var(--shadow);
+    position:relative; overflow:hidden;
+  }
+  .result-eyebrow{ text-align:center; font-size:12px; font-weight:800; letter-spacing:0.14em;
+    text-transform:uppercase; color:var(--ink-soft); margin-bottom:4px; }
+  .result-you-are{ text-align:center; font-size:13px; font-weight:800; color:var(--rain-deep); letter-spacing:0.08em; text-transform:uppercase; }
+  .char-stage{
+    position:relative; height:200px; display:flex; align-items:center; justify-content:center;
+    margin:6px 0 2px;
+  }
+  .char-stage svg.character{ width:150px; height:150px; opacity:0; transform:translateY(14px) scale(0.9);
+    animation:charIn .55s cubic-bezier(.2,.9,.3,1.1) .1s forwards; position:relative; z-index:2; }
+  .char-stage svg.reflection{
+    width:150px; height:75px; position:absolute; bottom:6px; opacity:0;
+    transform:scaleY(-1); filter:blur(1px);
+    -webkit-mask-image:linear-gradient(to bottom, rgba(0,0,0,0.35), transparent);
+    mask-image:linear-gradient(to bottom, rgba(0,0,0,0.35), transparent);
+    animation:reflIn .6s ease .25s forwards;
+  }
+  .puddle-ellipse{
+    position:absolute; bottom:2px; width:120px; height:22px; border-radius:50%;
+    background:radial-gradient(ellipse at center, rgba(62,110,158,0.35), rgba(62,110,158,0));
+    z-index:1;
+  }
+  @keyframes charIn{ to{ opacity:1; transform:translateY(0) scale(1); } }
+  @keyframes reflIn{ to{ opacity:0.55; } }
+  .result-name{ text-align:center; font-size:25px; margin:2px 0 2px; }
+  .result-tagline{ text-align:center; font-size:15.5px; font-weight:700; color:var(--coral); margin:0 0 12px; font-style:italic; }
+  .result-desc{ text-align:center; font-size:14.5px; color:var(--ink-soft); line-height:1.5; margin:0 0 18px; padding:0 4px;}
+  .dims{ display:flex; flex-direction:column; gap:10px; margin-bottom:18px; }
+  .dim-row .dim-label{ display:flex; justify-content:space-between; font-size:12px; font-weight:800; color:var(--rain-deep); letter-spacing:0.04em; text-transform:uppercase; margin-bottom:4px; }
+  .dim-track{ height:10px; background:var(--cream-2); border-radius:100px; overflow:hidden; }
+  .dim-fill{ height:100%; border-radius:100px; width:0%; transition:width 1s cubic-bezier(.2,.8,.3,1); }
+  .callout{ background:var(--cream-2); border-radius:16px; padding:14px 16px; margin-bottom:10px; }
+  .callout h3{ font-size:12.5px; text-transform:uppercase; letter-spacing:0.06em; margin:0 0 6px; color:var(--rain-deep); }
+  .callout p{ margin:0; font-size:14.5px; line-height:1.5; }
+  .callout .emoji{ font-size:20px; margin-right:6px; }
+  .compat-section{ margin-bottom:10px; }
+  .compat-heading{ font-size:12.5px; text-transform:uppercase; letter-spacing:0.06em; margin:14px 0 8px; color:var(--rain-deep); font-weight:800; }
+  .compat-heading.clash{ color:var(--coral); }
+  .compat-row{
+    display:flex; align-items:center; gap:12px; background:var(--cream-2);
+    border-radius:16px; padding:10px 12px; margin-bottom:8px;
+  }
+  .compat-row.clash{ background:#FBEAE6; }
+  .compat-avatar{ width:44px; height:44px; flex:none; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(39,74,107,0.12); }
+  .compat-avatar svg{ width:34px; height:34px; }
+  .compat-text{ font-size:13.5px; line-height:1.4; }
+  .compat-text .compat-name{ font-family:'Baloo 2',cursive; font-size:14.5px; display:block; margin-bottom:1px; color:var(--ink); }
+  .compat-text .compat-reason{ color:var(--ink-soft); }
+
+  /* ---------- Compare section (challenge link result) ---------- */
+  .compare-section{
+    margin-top:16px; padding-top:16px; border-top:2px dashed var(--cream-2);
+  }
+  .compare-heading{
+    text-align:center; font-family:'Baloo 2',cursive; font-size:16px; color:var(--ink);
+    margin-bottom:14px;
+  }
+  .compare-heading span{ color:var(--coral); }
+  .compare-chars{ display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:14px; }
+  .compare-side{ flex:1; display:flex; flex-direction:column; align-items:center; text-align:center; max-width:110px; }
+  .compare-avatar{ width:64px; height:64px; border-radius:50%; background:var(--cream-2); display:flex; align-items:center; justify-content:center; margin-bottom:6px; }
+  .compare-avatar svg{ width:52px; height:52px; }
+  .compare-label{ font-size:11px; text-transform:uppercase; letter-spacing:0.05em; font-weight:800; color:var(--ink-soft); }
+  .compare-pname{ font-family:'Baloo 2',cursive; font-size:13.5px; color:var(--ink); line-height:1.25; }
+  .compare-vs{
+    font-family:'Baloo 2',cursive; font-size:15px; color:#fff; background:var(--rain-deep);
+    width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:none;
+  }
+  .compare-traits{
+    display:flex; flex-direction:column; gap:6px; background:var(--cream-2); border-radius:14px;
+    padding:12px 14px; margin-bottom:12px; font-size:14px; font-weight:700; color:var(--rain-deep); text-align:center;
+  }
+  .compare-scenario{ background:#FBEAE6; border-radius:14px; padding:12px 14px; }
+  .compare-scenario h3{ font-size:12px; text-transform:uppercase; letter-spacing:0.05em; margin:0 0 6px; color:var(--coral); }
+  .compare-scenario p{ margin:0; font-size:14px; line-height:1.5; color:var(--ink); }
+
+  .name-input-row{ margin-bottom:2px; }
+  .name-label{ display:block; font-size:12px; color:var(--ink-soft); font-weight:700; margin-bottom:6px; text-align:center; }
+  .name-input{
+    width:100%; border:2px solid var(--cream-2); border-radius:100px; padding:11px 16px;
+    font-family:'Nunito',sans-serif; font-size:14.5px; font-weight:700; color:var(--ink);
+    background:#fff; text-align:center;
+  }
+  .name-input:focus{ border-color:var(--rain); }
+  .result-actions{ margin-top:18px; display:flex; flex-direction:column; gap:10px; }
+  .share-btn{
+    background:var(--coral); color:#fff; border:none; border-radius:100px; font-family:'Baloo 2',cursive;
+    font-size:17px; font-weight:700; padding:15px; cursor:pointer; box-shadow:0 6px 0 #C1583F;
+  }
+  .share-btn:active{ transform:translateY(4px); box-shadow:0 2px 0 #C1583F; }
+  .retake-btn{
+    background:transparent; color:var(--rain-deep); border:2px solid var(--rain-deep); border-radius:100px;
+    font-family:'Baloo 2',cursive; font-size:16px; font-weight:700; padding:13px; cursor:pointer;
+  }
+  .share-status{ text-align:center; font-size:12.5px; color:var(--ink-soft); margin-top:6px; min-height:16px; }
+
+  /* Hidden export card for image generation */
+  #exportCard{
+    position:fixed; left:-9999px; top:0; width:390px; min-height:693px; height:auto;
+    background:linear-gradient(165deg, var(--rain) 0%, var(--rain-deep) 55%, var(--ink) 100%);
+    border-radius:0; display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+    padding:36px 26px; font-family:'Nunito',sans-serif; color:#fff;
+  }
+  #exportCard .ex-kicker{ font-family:'Baloo 2',cursive; font-size:14px; letter-spacing:0.08em; text-transform:uppercase; opacity:0.85; margin-bottom:18px;}
+  #exportCard .ex-char{ width:170px; height:170px; margin-bottom:6px; }
+  #exportCard .ex-puddle{ width:170px; height:36px; margin-bottom:14px; opacity:0.5; }
+  #exportCard .ex-name{ font-family:'Baloo 2',cursive; font-size:28px; text-align:center; margin:0 0 6px; }
+  #exportCard .ex-tag{ font-size:16px; font-style:italic; opacity:0.9; margin:0 0 16px; text-align:center; }
+  #exportCard .ex-desc{ font-size:14.5px; text-align:center; line-height:1.5; opacity:0.95; padding:0 6px; }
+  #exportCard .ex-callout{ width:100%; background:rgba(255,255,255,0.14); border-radius:14px; padding:10px 14px; margin-top:12px; }
+  #exportCard .ex-callout-label{ font-family:'Baloo 2',cursive; font-size:12px; text-transform:uppercase; letter-spacing:0.04em; opacity:0.85; display:block; margin-bottom:3px; }
+  #exportCard .ex-callout p{ margin:0; font-size:13.5px; line-height:1.45; }
+  #exportCard .ex-cta{
+    margin-top:20px; width:100%; text-align:center; background:var(--amber); color:var(--ink);
+    border-radius:100px; padding:12px 14px; font-family:'Baloo 2',cursive; font-size:15px; font-weight:700;
+    line-height:1.35; box-shadow:0 4px 0 #C9843C;
+  }
+  #exportCard .ex-cta span{ font-family:'Nunito',sans-serif; font-size:12.5px; font-weight:700; opacity:0.85; word-break:break-all; }
+  #exportCard .ex-footer{ margin-top:14px; text-align:center; font-family:'Nunito',sans-serif; font-size:11.5px; opacity:0.7; padding-top:2px; }
+  #exportCard .ex-compat-block{ width:100%; margin-top:14px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.25); }
+  #exportCard .ex-compat-heading{ font-family:'Baloo 2',cursive; font-size:13.5px; text-transform:uppercase; letter-spacing:0.05em; opacity:0.9; margin:0 0 8px; }
+  #exportCard .ex-compat-heading.clash{ margin-top:16px; }
+  #exportCard .ex-compat-row{ display:flex; flex-direction:column; gap:8px; }
+  #exportCard .ex-compat-item{ display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.12); border-radius:14px; padding:7px 10px; }
+  #exportCard .ex-compat-avatar{ width:34px; height:34px; flex:none; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; }
+  #exportCard .ex-compat-avatar svg{ width:26px; height:26px; }
+  #exportCard .ex-compat-name{ font-size:13.5px; font-weight:800; }
+
+  @media (min-width:600px){
+    .headline{ font-size:34px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ LANDING ============ -->
+<main id="landing" class="screen active" aria-live="polite">
+  <div class="scene-wrap" aria-hidden="true">
+    <svg viewBox="0 0 400 260" xmlns="http://www.w3.org/2000/svg">
+      <!-- sky already via css bg -->
+      <g id="rainDrops"></g>
+      <!-- HDB blocks -->
+      <rect x="20" y="120" width="70" height="110" rx="4" fill="#DDEAF3" opacity="0.9"/>
+      <rect x="30" y="132" width="14" height="14" rx="2" fill="#3E6E9E" opacity="0.5"/>
+      <rect x="50" y="132" width="14" height="14" rx="2" fill="#3E6E9E" opacity="0.5"/>
+      <rect x="30" y="152" width="14" height="14" rx="2" fill="#3E6E9E" opacity="0.5"/>
+      <rect x="50" y="152" width="14" height="14" rx="2" fill="#F2A65A" opacity="0.6"/>
+      <rect x="30" y="172" width="14" height="14" rx="2" fill="#3E6E9E" opacity="0.5"/>
+      <rect x="50" y="172" width="14" height="14" rx="2" fill="#3E6E9E" opacity="0.5"/>
+      <rect x="100" y="90" width="60" height="140" rx="4" fill="#E7F0F6" opacity="0.85"/>
+      <rect x="108" y="102" width="12" height="12" rx="2" fill="#274A6B" opacity="0.4"/>
+      <rect x="126" y="102" width="12" height="12" rx="2" fill="#274A6B" opacity="0.4"/>
+      <rect x="144" y="102" width="12" height="12" rx="2" fill="#274A6B" opacity="0.4"/>
+      <rect x="108" y="120" width="12" height="12" rx="2" fill="#274A6B" opacity="0.4"/>
+      <rect x="126" y="120" width="12" height="12" rx="2" fill="#F2A65A" opacity="0.5"/>
+      <rect x="144" y="120" width="12" height="12" rx="2" fill="#274A6B" opacity="0.4"/>
+      <!-- rain clouds -->
+      <ellipse cx="290" cy="55" rx="55" ry="22" fill="#F3ECDC" opacity="0.9"/>
+      <ellipse cx="330" cy="65" rx="40" ry="18" fill="#F3ECDC" opacity="0.9"/>
+      <ellipse cx="255" cy="65" rx="35" ry="16" fill="#F3ECDC" opacity="0.9"/>
+      <!-- road + puddle -->
+      <rect x="0" y="230" width="400" height="30" fill="#274A6B" opacity="0.55"/>
+      <ellipse cx="230" cy="242" rx="55" ry="9" fill="#AFD0E3" opacity="0.8"/>
+      <ellipse cx="120" cy="248" rx="30" ry="6" fill="#AFD0E3" opacity="0.6"/>
+      <!-- bus stop -->
+      <rect x="190" y="175" width="4" height="55" fill="#DDEAF3"/>
+      <rect x="176" y="170" width="60" height="8" rx="2" fill="#DDEAF3"/>
+      <!-- umbrella person -->
+      <g transform="translate(215,195)">
+        <path d="M0 20 Q14 -6 28 20 Z" fill="#E8735A"/>
+        <rect x="12" y="18" width="4" height="20" rx="2" fill="#23253A"/>
+        <circle cx="14" cy="42" r="7" fill="#F3ECDC"/>
+        <rect x="9" y="48" width="10" height="16" rx="4" fill="#7FB069"/>
+      </g>
+      <!-- kopi cup -->
+      <g transform="translate(60,200)">
+        <rect x="0" y="6" width="20" height="20" rx="3" fill="#F2A65A"/>
+        <rect x="0" y="0" width="20" height="6" rx="2" fill="#fff"/>
+        <path d="M20 10 q8 2 0 10" stroke="#F2A65A" stroke-width="3" fill="none"/>
+      </g>
+      <!-- otter -->
+      <g transform="translate(320,205)">
+        <ellipse cx="10" cy="18" rx="14" ry="9" fill="#8B5E3C"/>
+        <circle cx="20" cy="12" r="7" fill="#8B5E3C"/>
+        <circle cx="22" cy="10" r="1.3" fill="#23253A"/>
+      </g>
+    </svg>
+  </div>
+
+  <p class="disclaimer-top">Not affiliated with PUB. Probably.</p>
+
+  <div class="challenge-banner" id="challengeBanner" style="display:none;">
+    <div class="challenge-avatar" id="challengeAvatar"></div>
+    <div class="challenge-text">
+      <strong id="challengeName"></strong> got <span id="challengePersonality"></span>
+      <br>Think you're different? Find out.
+    </div>
+  </div>
+
+  <span class="kicker" id="landingKicker">Two-minute personality quiz</span>
+  <h1 class="headline" id="landingHeadline">🌧️ What's your flood personality?</h1>
+  <p class="subhead">When the rain comes down, what kind of Singaporean are you?</p>
+
+  <ul class="brief-list">
+    <li>7 situations.</li>
+    <li>Questionable decisions.</li>
+    <li>One very scientific answer.</li>
+  </ul>
+
+  <button class="cta-primary" id="startBtn">LET'S GO →</button>
+
+  <p class="flavor-text">Made for fun, flood awareness and extremely scientific personality testing.*<br><br>*The science is questionable. The flood tips are not.</p>
+</main>
+
+<!-- ============ QUIZ ============ -->
+<main id="quiz" class="screen" aria-live="polite">
+  <div class="progress-row">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-label" id="progressLabel">1 / 7</div>
+  </div>
+
+  <div class="q-icon-wrap" id="qIconWrap" aria-hidden="true"></div>
+
+  <h2 class="q-scenario" id="qScenario"></h2>
+
+  <div class="answers" id="answersWrap" role="group" aria-labelledby="qScenario"></div>
+
+  <div class="feedback" id="feedback">
+    <div class="reaction" id="reactionText"></div>
+    <div class="tip" id="tipText"></div>
+  </div>
+
+  <button class="next-btn" id="nextBtn">NEXT →</button>
+</main>
+
+<!-- ============ REVEAL (suspense) ============ -->
+<main id="reveal" class="screen">
+  <div class="reveal-visual">
+    <div class="reveal-ring"></div>
+    <div class="reveal-ring ring2"></div>
+    <div class="reveal-drop">💧</div>
+  </div>
+  <p class="reveal-text" id="revealText">Calculating your flood personality…</p>
+</main>
+
+<!-- ============ RESULT ============ -->
+<main id="result" class="screen">
+  <div class="result-card" id="resultCard">
+    <div class="result-eyebrow stagger-item">🌧️</div>
+    <div class="result-you-are stagger-item">You are...</div>
+    <div class="char-stage stagger-item">
+      <div class="puddle-ellipse" aria-hidden="true"></div>
+      <div id="charSlot"></div>
+    </div>
+    <h1 class="result-name stagger-item" id="resultName"></h1>
+    <p class="result-tagline stagger-item" id="resultTagline"></p>
+    <p class="result-desc stagger-item" id="resultDesc"></p>
+
+    <div class="dims stagger-item">
+      <div class="dim-row">
+        <div class="dim-label"><span>Situational Awareness</span><span id="dimAVal"></span></div>
+        <div class="dim-track"><div class="dim-fill" id="dimA" style="background:var(--rain);"></div></div>
+      </div>
+      <div class="dim-row">
+        <div class="dim-label"><span>Spontaneity</span><span id="dimSVal"></span></div>
+        <div class="dim-track"><div class="dim-fill" id="dimS" style="background:var(--coral);"></div></div>
+      </div>
+      <div class="dim-row">
+        <div class="dim-label"><span>Community</span><span id="dimCVal"></span></div>
+        <div class="dim-track"><div class="dim-fill" id="dimC" style="background:var(--leaf);"></div></div>
+      </div>
+      <div class="dim-row">
+        <div class="dim-label"><span>Preparedness</span><span id="dimPVal"></span></div>
+        <div class="dim-track"><div class="dim-fill" id="dimP" style="background:var(--amber);"></div></div>
+      </div>
+    </div>
+
+    <div class="callout stagger-item">
+      <h3>Your flood superpower</h3>
+      <p><span class="emoji" id="superEmoji"></span><span id="superText"></span></p>
+    </div>
+    <div class="callout stagger-item">
+      <h3>One thing to remember</h3>
+      <p><span class="emoji">🌊</span><span id="rememberText"></span></p>
+    </div>
+
+    <div class="compat-section stagger-item">
+      <div class="compat-heading">🤝 You'll vibe with</div>
+      <div id="vibesWrap"></div>
+      <div class="compat-heading clash">⚡ Might test your patience</div>
+      <div id="clashWrap"></div>
+    </div>
+
+    <div class="compare-section stagger-item" id="compareSection" style="display:none;">
+      <div class="compare-heading">⚔️ You vs <span id="cmpName"></span></div>
+      <div class="compare-chars">
+        <div class="compare-side">
+          <div class="compare-avatar" id="cmpYouChar"></div>
+          <div class="compare-label">You</div>
+          <div class="compare-pname" id="cmpYouName"></div>
+        </div>
+        <div class="compare-vs">VS</div>
+        <div class="compare-side">
+          <div class="compare-avatar" id="cmpThemChar"></div>
+          <div class="compare-label" id="cmpThemLabel"></div>
+          <div class="compare-pname" id="cmpThemName"></div>
+        </div>
+      </div>
+      <div class="compare-traits">
+        <p id="cmpTraitYou"></p>
+        <p id="cmpTraitThem"></p>
+      </div>
+      <div class="compare-scenario">
+        <h3>In a flood together...</h3>
+        <p id="cmpScenario"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="result-actions">
+    <div class="name-input-row">
+      <label for="yourName" class="name-label">Your name (optional — shown on your challenge link)</label>
+      <input type="text" id="yourName" maxlength="24" placeholder="e.g. Valerie" class="name-input" autocomplete="off">
+    </div>
+    <button class="share-btn" id="shareBtn">SHARE MY RESULT</button>
+    <button class="retake-btn" id="retakeBtn">RETAKE QUIZ</button>
+    <div class="share-status" id="shareStatus"></div>
+  </div>
+</main>
+
+<!-- Hidden export card used to render the share image -->
+<div id="exportCard">
+  <div class="ex-kicker">What's your flood personality?</div>
+  <div class="ex-char" id="exCharSlot"></div>
+  <svg class="ex-puddle" viewBox="0 0 150 32"><ellipse cx="75" cy="10" rx="70" ry="10" fill="white"/></svg>
+  <h2 class="ex-name" id="exName"></h2>
+  <p class="ex-tag" id="exTag"></p>
+  <p class="ex-desc" id="exDesc"></p>
+
+  <div class="ex-callout">
+    <span class="ex-callout-label">🦸 Flood superpower</span>
+    <p id="exSuper"></p>
+  </div>
+  <div class="ex-callout">
+    <span class="ex-callout-label">🌊 One thing to remember</span>
+    <p id="exRemember"></p>
+  </div>
+
+  <div class="ex-compat-block">
+    <div class="ex-compat-heading">🤝 Vibes with</div>
+    <div class="ex-compat-row" id="exVibesWrap"></div>
+    <div class="ex-compat-heading clash">⚡ Clashes with</div>
+    <div class="ex-compat-row" id="exClashWrap"></div>
+  </div>
+
+  <div class="ex-cta">🌧️ Take the quiz →<br><span id="exUrl"></span></div>
+  <div class="ex-footer">Not affiliated with PUB. Probably.</div>
+</div>
+
+<script>
+/* =========================================================================
+   DATA — edit questions, tips, and personalities here.
+   ========================================================================= */
+
+// --- Small SVG icon library for question illustrations ---
+const ICONS = {
+  alert: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#F2A65A" opacity="0.25"/><path d="M50 20 L82 76 L18 76 Z" fill="#F2A65A" stroke="#23253A" stroke-width="3" stroke-linejoin="round"/><rect x="46" y="42" width="8" height="18" rx="3" fill="#23253A"/><circle cx="50" cy="66" r="4.5" fill="#23253A"/></svg>`,
+  pavement: `<svg viewBox="0 0 100 100"><rect x="10" y="55" width="80" height="30" rx="4" fill="#AFD0E3"/><path d="M10 55 Q50 45 90 55" fill="none" stroke="#3E6E9E" stroke-width="3"/><rect x="15" y="20" width="20" height="35" rx="3" fill="#DDEAF3"/><rect x="65" y="15" width="20" height="40" rx="3" fill="#DDEAF3"/><circle cx="50" cy="60" r="6" fill="#3E6E9E" opacity="0.5"/><circle cx="63" cy="68" r="4" fill="#3E6E9E" opacity="0.4"/></svg>`,
+  friend: `<svg viewBox="0 0 100 100"><circle cx="35" cy="35" r="14" fill="#F2A65A"/><rect x="22" y="52" width="26" height="30" rx="10" fill="#7FB069"/><circle cx="68" cy="38" r="13" fill="#E8735A"/><rect x="56" y="54" width="24" height="28" rx="10" fill="#3E6E9E"/><path d="M10 90 Q50 78 90 90" fill="none" stroke="#AFD0E3" stroke-width="6" stroke-linecap="round"/></svg>`,
+  car: `<svg viewBox="0 0 100 100"><rect x="8" y="60" width="84" height="22" rx="8" fill="#E8735A"/><rect x="22" y="42" width="56" height="24" rx="8" fill="#E8735A"/><rect x="30" y="46" width="16" height="14" rx="2" fill="#DDEAF3"/><rect x="52" y="46" width="16" height="14" rx="2" fill="#DDEAF3"/><circle cx="28" cy="84" r="9" fill="#23253A"/><circle cx="72" cy="84" r="9" fill="#23253A"/><path d="M4 88 Q50 80 96 88" fill="none" stroke="#AFD0E3" stroke-width="6" stroke-linecap="round"/></svg>`,
+  stall: `<svg viewBox="0 0 100 100"><rect x="10" y="55" width="80" height="20" rx="8" fill="#9AA0B3"/><rect x="24" y="38" width="52" height="22" rx="8" fill="#9AA0B3"/><rect x="30" y="42" width="14" height="12" rx="2" fill="#DDEAF3"/><rect x="52" y="42" width="14" height="12" rx="2" fill="#DDEAF3"/><path d="M4 80 Q50 68 96 80" fill="#AFD0E3"/><circle cx="30" cy="82" r="8" fill="#23253A"/><circle cx="70" cy="82" r="8" fill="#23253A"/><path d="M40 20 l6 10 l-6 -2 l-2 10 l-4 -12 l-8 4 z" fill="#F2A65A"/></svg>`,
+  house: `<svg viewBox="0 0 100 100"><path d="M50 15 L88 45 L82 45 L82 85 L18 85 L18 45 L12 45 Z" fill="#DDEAF3"/><rect x="42" y="60" width="16" height="25" fill="#3E6E9E"/><rect x="25" y="55" width="14" height="14" fill="#F2A65A" opacity="0.7"/><path d="M10 90 Q50 78 90 90" fill="none" stroke="#AFD0E3" stroke-width="6" stroke-linecap="round"/><path d="M20 85 q4 -14 0 -22" stroke="#3E6E9E" stroke-width="4" fill="none" opacity="0.6"/></svg>`,
+  helping: `<svg viewBox="0 0 100 100"><circle cx="32" cy="30" r="13" fill="#7FB069"/><rect x="20" y="46" width="24" height="30" rx="10" fill="#3E6E9E"/><circle cx="68" cy="34" r="13" fill="#F2A65A"/><rect x="56" y="50" width="24" height="28" rx="10" fill="#E8735A"/><path d="M44 60 L56 60" stroke="#23253A" stroke-width="4" stroke-linecap="round"/><path d="M8 88 Q50 76 92 88" fill="none" stroke="#AFD0E3" stroke-width="6" stroke-linecap="round"/></svg>`
+};
+
+const QUESTIONS = [
+  {
+    icon:'alert',
+    scenario:"You're out and about when your phone buzzes with a heavy-rain / flood alert.",
+    answers:[
+      { text:"Check the alert properly and see how bad it really is", v:{A:3,S:0,C:0,P:1},
+        reaction:"Very research-before-action of you.",
+        tip:"Good instinct — checking conditions before deciding what to do next helps you avoid getting caught somewhere low-lying." },
+      { text:"Immediately change your plans and head somewhere safer", v:{A:1,S:2,C:0,P:2},
+        reaction:"Wah, decisive.",
+        tip:"Adjusting your route early is one of the most useful things you can do when a flood alert comes in." },
+      { text:"Blast a warning into the group chat", v:{A:1,S:1,C:3,P:0},
+        reaction:"Community service announcement, unlocked.",
+        tip:"Sharing alerts with people around you helps everyone adjust their plans faster." },
+      { text:"Continue on lah, it's just rain, I've survived worse", v:{A:0,S:3,C:0,P:0},
+        reaction:"Bold. Slightly unhinged. We respect it.",
+        tip:"Fair enough — just keep an eye on how the situation develops as you go." }
+    ]
+  },
+  {
+    icon:'pavement',
+    scenario:"Walking home, you hit a stretch of pavement that's completely flooded.",
+    answers:[
+      { text:"Turn around and find another way", v:{A:1,S:0,C:0,P:2},
+        reaction:"Steady lah. No drama needed.",
+        tip:"Taking the long way round is usually the safer call — avoid entering floodwater where possible." },
+      { text:"Stop and size it up first — how deep, how fast", v:{A:3,S:0,C:0,P:1},
+        reaction:"Okay, detective mode.",
+        tip:"Smart to look before you leap — floodwater is often deeper or faster-moving than it appears." },
+      { text:"Warn the people walking behind you", v:{A:1,S:0,C:3,P:0},
+        reaction:"Guardian of the five-foot-way.",
+        tip:"A quick heads-up to others nearby can save them an unpleasant surprise." },
+      { text:"Take a photo first, obviously", v:{A:0,S:2,C:1,P:0},
+        reaction:"Very content creator of you.",
+        tip:"Just don't enter the floodwater for the perfect shot — it can hide uneven ground or open drains." }
+    ]
+  },
+  {
+    icon:'friend',
+    scenario:"Your friend eyes the moving floodwater ahead and goes: \"Aiya, can just walk through what.\"",
+    answers:[
+      { text:"\"Not happening. Let's find another way.\"", v:{A:1,S:1,C:2,P:1},
+        reaction:"Firm hand on the wheel, respect.",
+        tip:"Moving floodwater can knock you off balance more easily than it looks — worth steering clear." },
+      { text:"Calmly explain why that's a bad idea", v:{A:2,S:0,C:2,P:0},
+        reaction:"The friend group's safety officer, unofficially.",
+        tip:"A short explanation goes a long way — moving water is riskier than still water, even if it looks shallow." },
+      { text:"Let them decide, but you're not going in", v:{A:1,S:0,C:0,P:1},
+        reaction:"Not your circus, not your monkey — but also not your feet getting wet.",
+        tip:"Your call to stay out of moving floodwater is a solid one regardless of what anyone else does." },
+      { text:"Film it, just in case", v:{A:0,S:2,C:0,P:0},
+        reaction:"EH. Don't anyhow.",
+        tip:"Fun for the group chat later, but moving water can be stronger and deeper than it looks on camera." }
+    ]
+  },
+  {
+    icon:'car',
+    scenario:"You're driving and the road ahead disappears under floodwater.",
+    answers:[
+      { text:"Stop and check how deep it looks before deciding", v:{A:3,S:0,C:0,P:1},
+        reaction:"Very cautious driver energy.",
+        tip:"Good move — if you can't see the kerb or road markings anymore, it's hard to judge how deep the water really is." },
+      { text:"Turn around immediately, find another route", v:{A:1,S:1,C:0,P:2},
+        reaction:"Steady lah.",
+        tip:"Rerouting is usually the safest option when a road looks flooded — better a longer drive than a stuck car." },
+      { text:"Check with someone if the road ahead is passable", v:{A:1,S:0,C:2,P:1},
+        reaction:"Crowd-sourcing your commute, respect.",
+        tip:"Getting a second opinion before committing to a flooded stretch of road is never a bad idea." },
+      { text:"Gun it, YOLO", v:{A:0,S:3,C:0,P:0},
+        reaction:"Your confidence is impressive.",
+        tip:"Bold move — but flooded roads can hide dips, open drains, or a current strong enough to move a car." }
+    ]
+  },
+  {
+    icon:'stall',
+    scenario:"Your car stalls as the floodwater around it keeps rising.",
+    answers:[
+      { text:"Try to restart the engine a few times", v:{A:0,S:2,C:0,P:0},
+        reaction:"Understandable panic response.",
+        tip:"Worth knowing: restarting a stalled engine in rising water can cause more damage — hazards on and call for help instead." },
+      { text:"Stay put and wait it out", v:{A:0,S:0,C:0,P:1},
+        reaction:"Steady lah. No need to panic.",
+        tip:"Staying calm is good — just make sure you also get help moving, since water can keep rising." },
+      { text:"Hazard lights on, call for help, move to higher ground once safe", v:{A:2,S:0,C:1,P:3},
+        reaction:"Okay this one is very you — textbook composure.",
+        tip:"Exactly it — don't restart the car, switch on your hazards, call for assistance and get to higher ground when it's safe to do so." },
+      { text:"Panic-post in the group chat", v:{A:0,S:1,C:3,P:0},
+        reaction:"GUYS. IMPORTANT.",
+        tip:"Letting people know matters — just remember to also call for actual roadside or emergency assistance." }
+    ]
+  },
+  {
+    icon:'house',
+    scenario:"Water starts collecting around your home.",
+    answers:[
+      { text:"Move important items to higher shelves", v:{A:1,S:0,C:0,P:3},
+        reaction:"Kiasu instincts, activated.",
+        tip:"Moving essentials to higher ground early is one of the most effective things you can do." },
+      { text:"Go check and clear the drains outside", v:{A:2,S:0,C:0,P:2},
+        reaction:"The unsung hero of the estate.",
+        tip:"Keeping drains clear and choke-free helps water flow away instead of pooling around your home." },
+      { text:"Set up flood barriers at the door", v:{A:1,S:0,C:0,P:3},
+        reaction:"Prepared. Very prepared.",
+        tip:"Flood barriers can help keep water out when used at the right time — good thinking ahead." },
+      { text:"Message family and neighbours a heads-up", v:{A:1,S:0,C:3,P:1},
+        reaction:"GUYS. IMPORTANT (part two).",
+        tip:"A quick heads-up gives everyone more time to move things and prepare." }
+    ]
+  },
+  {
+    icon:'helping',
+    scenario:"You're safe, but you notice someone nearby who looks unsure what to do.",
+    answers:[
+      { text:"Point them toward a safer route", v:{A:1,S:0,C:2,P:1},
+        reaction:"Community wayfinder.",
+        tip:"Helping someone find a drier path is a simple, effective way to look out for others." },
+      { text:"Tell them clearly not to enter the floodwater", v:{A:1,S:1,C:2,P:0},
+        reaction:"Direct and to the point. Respect.",
+        tip:"A clear, calm warning can stop someone from wading into water that's deeper or faster than it looks." },
+      { text:"Check the situation together before deciding", v:{A:3,S:0,C:1,P:0},
+        reaction:"Hmm. Respect the confidence — and the caution.",
+        tip:"Assessing together before acting is a solid habit, especially when the situation is unclear." },
+      { text:"Post about it later — hero moment secured", v:{A:0,S:1,C:1,P:0},
+        reaction:"Content first, but your heart's in the right place.",
+        tip:"Nothing wrong with sharing later — just help first, post after." }
+    ]
+  }
+];
+
+const CHAR_SVG = {
+  chiongster:`<svg viewBox="0 0 160 160">
+    <ellipse cx="80" cy="103" rx="55" ry="45" fill="#F6C99A"/>
+    <path d="M80 60 Q86 103 80 146" stroke="rgba(43,42,61,0.12)" stroke-width="2" fill="none" stroke-dasharray="4 5"/>
+    <ellipse cx="48" cy="57" rx="14" ry="16" fill="#F6C99A"/><ellipse cx="112" cy="57" rx="14" ry="16" fill="#F6C99A"/>
+    <ellipse cx="48" cy="59" rx="7" ry="8" fill="#FBE3C0"/><ellipse cx="112" cy="59" rx="7" ry="8" fill="#FBE3C0"/>
+    <ellipse cx="28" cy="106" rx="12" ry="18" fill="#F6C99A" transform="rotate(-30 28 106)"/>
+    <ellipse cx="132" cy="106" rx="12" ry="18" fill="#F6C99A" transform="rotate(30 132 106)"/>
+    <ellipse cx="55" cy="145" rx="15" ry="9" fill="#F6C99A"/><ellipse cx="105" cy="145" rx="15" ry="9" fill="#F6C99A"/>
+    <ellipse cx="53" cy="102" rx="8" ry="5.5" fill="rgba(232,115,90,0.32)"/><ellipse cx="107" cy="102" rx="8" ry="5.5" fill="rgba(232,115,90,0.32)"/>
+    <circle cx="61" cy="90" r="4.3" fill="#2B2A3D"/><circle cx="99" cy="90" r="4.3" fill="#2B2A3D"/>
+    <circle cx="62.4" cy="88.6" r="1.2" fill="#fff"/><circle cx="100.4" cy="88.6" r="1.2" fill="#fff"/>
+    <path d="M64 105 Q80 118 96 105" stroke="#2B2A3D" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <ellipse cx="55" cy="150" rx="13" ry="5" fill="#E8735A"/><ellipse cx="105" cy="150" rx="13" ry="5" fill="#E8735A"/>
+    <path d="M17 82 L7 78 M18 94 L6 94" stroke="#E8735A" stroke-width="3" stroke-linecap="round" opacity="0.55"/>
+  </svg>`,
+  kopi:`<svg viewBox="0 0 160 160">
+    <ellipse cx="80" cy="103" rx="55" ry="45" fill="#9CC2DA"/>
+    <path d="M80 60 Q75 103 80 146" stroke="rgba(43,42,61,0.12)" stroke-width="2" fill="none" stroke-dasharray="4 5"/>
+    <ellipse cx="48" cy="57" rx="13" ry="15" fill="#9CC2DA"/><ellipse cx="112" cy="57" rx="13" ry="15" fill="#9CC2DA"/>
+    <ellipse cx="48" cy="59" rx="6.5" ry="7.5" fill="#D3E8F1"/><ellipse cx="112" cy="59" rx="6.5" ry="7.5" fill="#D3E8F1"/>
+    <ellipse cx="27" cy="112" rx="12" ry="17" fill="#9CC2DA" transform="rotate(-10 27 112)"/>
+    <ellipse cx="126" cy="118" rx="11" ry="17" fill="#9CC2DA" transform="rotate(35 126 118)"/>
+    <ellipse cx="55" cy="145" rx="15" ry="9" fill="#9CC2DA"/><ellipse cx="105" cy="145" rx="15" ry="9" fill="#9CC2DA"/>
+    <ellipse cx="53" cy="102" rx="7.5" ry="5" fill="rgba(232,115,90,0.25)"/><ellipse cx="107" cy="102" rx="7.5" ry="5" fill="rgba(232,115,90,0.25)"/>
+    <path d="M56 90 Q61 86 66 90" stroke="#2B2A3D" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M94 90 Q99 86 104 90" stroke="#2B2A3D" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M67 106 Q80 112 93 106" stroke="#2B2A3D" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <g transform="translate(112,122)"><rect x="0" y="6" width="22" height="18" rx="4" fill="#F2A65A"/><rect x="0" y="0" width="22" height="6" rx="2" fill="#fff"/><path d="M22 10 q7 2 0 9" stroke="#F2A65A" stroke-width="3" fill="none"/></g>
+  </svg>`,
+  umbrella:`<svg viewBox="0 0 160 160">
+    <ellipse cx="80" cy="106" rx="52" ry="43" fill="#F0AFA0"/>
+    <path d="M80 65 Q85 106 80 146" stroke="rgba(43,42,61,0.12)" stroke-width="2" fill="none" stroke-dasharray="4 5"/>
+    <ellipse cx="49" cy="63" rx="13" ry="15" fill="#F0AFA0"/><ellipse cx="111" cy="63" rx="13" ry="15" fill="#F0AFA0"/>
+    <ellipse cx="49" cy="65" rx="6.5" ry="7.5" fill="#F8D9D1"/><ellipse cx="111" cy="65" rx="6.5" ry="7.5" fill="#F8D9D1"/>
+    <ellipse cx="30" cy="118" rx="11" ry="17" fill="#F0AFA0" transform="rotate(-20 30 118)"/>
+    <ellipse cx="130" cy="118" rx="11" ry="17" fill="#F0AFA0" transform="rotate(20 130 118)"/>
+    <ellipse cx="57" cy="147" rx="14" ry="9" fill="#F0AFA0"/><ellipse cx="103" cy="147" rx="14" ry="9" fill="#F0AFA0"/>
+    <ellipse cx="55" cy="104" rx="7.5" ry="5" fill="rgba(232,115,90,0.3)"/><ellipse cx="105" cy="104" rx="7.5" ry="5" fill="rgba(232,115,90,0.3)"/>
+    <circle cx="63" cy="94" r="4.2" fill="#2B2A3D"/><circle cx="97" cy="94" r="4.2" fill="#2B2A3D"/>
+    <circle cx="64.3" cy="92.6" r="1.1" fill="#fff"/><circle cx="98.3" cy="92.6" r="1.1" fill="#fff"/>
+    <path d="M68 108 Q80 115 92 108" stroke="#2B2A3D" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M38 40 Q80 12 122 40 Q80 26 38 40Z" fill="#7FB069"/>
+    <path d="M38 40 Q80 50 122 40" fill="none" stroke="#5E8E4E" stroke-width="2" opacity="0.5"/>
+    <rect x="77" y="34" width="6" height="34" rx="3" fill="#8B5E3C"/>
+  </svg>`,
+  myna:`<svg viewBox="0 0 160 160">
+    <ellipse cx="80" cy="104" rx="54" ry="44" fill="#4F5573"/>
+    <path d="M80 62 Q86 104 80 146" stroke="rgba(255,255,255,0.10)" stroke-width="2" fill="none" stroke-dasharray="4 5"/>
+    <ellipse cx="42" cy="102" rx="16" ry="22" fill="#4F5573" transform="rotate(-20 42 102)"/>
+    <ellipse cx="118" cy="102" rx="16" ry="22" fill="#4F5573" transform="rotate(20 118 102)"/>
+    <ellipse cx="42" cy="102" rx="8" ry="12" fill="#3B4058" opacity="0.5" transform="rotate(-20 42 102)"/>
+    <ellipse cx="118" cy="102" rx="8" ry="12" fill="#3B4058" opacity="0.5" transform="rotate(20 118 102)"/>
+    <ellipse cx="55" cy="146" rx="14" ry="8" fill="#4F5573"/><ellipse cx="105" cy="146" rx="14" ry="8" fill="#4F5573"/>
+    <path d="M100 88 L124 92 L100 98Z" fill="#F2A65A"/>
+    <circle cx="63" cy="86" r="6" fill="#fff"/><circle cx="91" cy="86" r="6" fill="#fff"/>
+    <circle cx="64.5" cy="86" r="3.4" fill="#2B2A3D"/><circle cx="92.5" cy="86" r="3.4" fill="#2B2A3D"/>
+    <ellipse cx="60" cy="54" rx="7" ry="9" fill="#F2A65A"/>
+    <ellipse cx="53" cy="96" rx="6" ry="4" fill="rgba(242,166,90,0.35)"/><ellipse cx="107" cy="96" rx="6" ry="4" fill="rgba(242,166,90,0.35)"/>
+  </svg>`,
+  general:`<svg viewBox="0 0 160 160">
+    <ellipse cx="80" cy="103" rx="55" ry="45" fill="#A9CDA1"/>
+    <path d="M80 60 Q74 103 80 146" stroke="rgba(43,42,61,0.12)" stroke-width="2" fill="none" stroke-dasharray="4 5"/>
+    <ellipse cx="48" cy="57" rx="14" ry="16" fill="#A9CDA1"/><ellipse cx="112" cy="57" rx="14" ry="16" fill="#A9CDA1"/>
+    <ellipse cx="48" cy="59" rx="7" ry="8" fill="#DCEEDD"/><ellipse cx="112" cy="59" rx="7" ry="8" fill="#DCEEDD"/>
+    <ellipse cx="26" cy="120" rx="12" ry="18" fill="#A9CDA1" transform="rotate(-35 26 120)"/>
+    <ellipse cx="132" cy="105" rx="12" ry="18" fill="#A9CDA1" transform="rotate(28 132 105)"/>
+    <ellipse cx="55" cy="145" rx="15" ry="9" fill="#A9CDA1"/><ellipse cx="105" cy="145" rx="15" ry="9" fill="#A9CDA1"/>
+    <ellipse cx="53" cy="100" rx="8" ry="5.5" fill="rgba(232,115,90,0.28)"/><ellipse cx="107" cy="100" rx="8" ry="5.5" fill="rgba(232,115,90,0.28)"/>
+    <circle cx="61" cy="88" r="4.3" fill="#2B2A3D"/><circle cx="99" cy="88" r="4.3" fill="#2B2A3D"/>
+    <circle cx="62.4" cy="86.6" r="1.2" fill="#fff"/><circle cx="100.4" cy="86.6" r="1.2" fill="#fff"/>
+    <ellipse cx="80" cy="107" rx="10" ry="8" fill="#2B2A3D"/>
+    <g transform="translate(6,108) rotate(-30)"><path d="M0 8 L34 0 L34 16 Z" fill="#F2A65A"/><rect x="34" y="4" width="7" height="8" fill="#DCEEDD"/></g>
+  </svg>`,
+  trolley:`<svg viewBox="0 0 160 160">
+    <ellipse cx="80" cy="98" rx="54" ry="44" fill="#E3A98A"/>
+    <path d="M80 56 Q86 98 80 140" stroke="rgba(43,42,61,0.12)" stroke-width="2" fill="none" stroke-dasharray="4 5"/>
+    <ellipse cx="48" cy="53" rx="14" ry="16" fill="#E3A98A"/><ellipse cx="112" cy="53" rx="14" ry="16" fill="#E3A98A"/>
+    <ellipse cx="48" cy="55" rx="7" ry="8" fill="#F6DCC9"/><ellipse cx="112" cy="55" rx="7" ry="8" fill="#F6DCC9"/>
+    <ellipse cx="30" cy="98" rx="11" ry="15" fill="#E3A98A" transform="rotate(-10 30 98)"/>
+    <ellipse cx="130" cy="98" rx="11" ry="15" fill="#E3A98A" transform="rotate(10 130 98)"/>
+    <ellipse cx="53" cy="96" rx="8" ry="5.5" fill="rgba(232,115,90,0.3)"/><ellipse cx="107" cy="96" rx="8" ry="5.5" fill="rgba(232,115,90,0.3)"/>
+    <circle cx="61" cy="84" r="4.3" fill="#2B2A3D"/><circle cx="99" cy="84" r="4.3" fill="#2B2A3D"/>
+    <circle cx="62.4" cy="82.6" r="1.2" fill="#fff"/><circle cx="100.4" cy="82.6" r="1.2" fill="#fff"/>
+    <path d="M64 100 Q80 111 96 100" stroke="#2B2A3D" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <rect x="42" y="132" width="76" height="20" rx="7" fill="#7FA8C9"/>
+    <rect x="48" y="126" width="64" height="10" rx="4" fill="#9CC2DA"/>
+    <circle cx="54" cy="156" r="6" fill="#2B2A3D"/><circle cx="106" cy="156" r="6" fill="#2B2A3D"/>
+  </svg>`,
+  otter:`<svg viewBox="0 0 160 160">
+    <ellipse cx="80" cy="108" rx="53" ry="40" fill="#C9A47C"/>
+    <path d="M80 70 Q85 108 80 146" stroke="rgba(43,42,61,0.12)" stroke-width="2" fill="none" stroke-dasharray="4 5"/>
+    <ellipse cx="80" cy="66" rx="34" ry="30" fill="#C9A47C"/>
+    <ellipse cx="53" cy="46" rx="10" ry="12" fill="#C9A47C"/><ellipse cx="107" cy="46" rx="10" ry="12" fill="#C9A47C"/>
+    <ellipse cx="53" cy="47" rx="5" ry="6" fill="#EBD9BF"/><ellipse cx="107" cy="47" rx="5" ry="6" fill="#EBD9BF"/>
+    <ellipse cx="30" cy="112" rx="11" ry="16" fill="#C9A47C" transform="rotate(-10 30 112)"/>
+    <ellipse cx="130" cy="112" rx="11" ry="16" fill="#C9A47C" transform="rotate(10 130 112)"/>
+    <ellipse cx="57" cy="147" rx="14" ry="8" fill="#C9A47C"/><ellipse cx="103" cy="147" rx="14" ry="8" fill="#C9A47C"/>
+    <ellipse cx="80" cy="72" rx="16" ry="12" fill="#EBD9BF"/>
+    <circle cx="70" cy="60" r="4.5" fill="#2B2A3D"/><circle cx="90" cy="60" r="4.5" fill="#2B2A3D"/>
+    <circle cx="71.3" cy="58.6" r="1.2" fill="#fff"/><circle cx="91.3" cy="58.6" r="1.2" fill="#fff"/>
+    <ellipse cx="80" cy="70" rx="6" ry="4" fill="#5A3E28"/>
+    <path d="M62 74 L46 70 M62 78 L44 80 M98 74 L114 70 M98 78 L116 80" stroke="#8B5E3C" stroke-width="1.5" opacity="0.6"/>
+  </svg>`,
+  philosopher:`<svg viewBox="0 0 160 160">
+    <ellipse cx="80" cy="105" rx="54" ry="44" fill="#B7C4E0"/>
+    <path d="M80 62 Q75 105 80 146" stroke="rgba(43,42,61,0.12)" stroke-width="2" fill="none" stroke-dasharray="4 5"/>
+    <ellipse cx="48" cy="59" rx="13" ry="15" fill="#B7C4E0"/><ellipse cx="112" cy="59" rx="13" ry="15" fill="#B7C4E0"/>
+    <ellipse cx="48" cy="61" rx="6.5" ry="7.5" fill="#E1E7F3"/><ellipse cx="112" cy="61" rx="6.5" ry="7.5" fill="#E1E7F3"/>
+    <ellipse cx="29" cy="108" rx="11" ry="17" fill="#B7C4E0" transform="rotate(6 29 108)"/>
+    <ellipse cx="131" cy="102" rx="11" ry="17" fill="#B7C4E0" transform="rotate(-25 131 102)"/>
+    <ellipse cx="56" cy="146" rx="14" ry="9" fill="#B7C4E0"/><ellipse cx="104" cy="146" rx="14" ry="9" fill="#B7C4E0"/>
+    <ellipse cx="54" cy="102" rx="7.5" ry="5" fill="rgba(232,115,90,0.22)"/><ellipse cx="106" cy="102" rx="7.5" ry="5" fill="rgba(232,115,90,0.22)"/>
+    <circle cx="63" cy="91" r="4.2" fill="#2B2A3D"/><circle cx="97" cy="91" r="4.2" fill="#2B2A3D"/>
+    <circle cx="64.3" cy="89.6" r="1.1" fill="#fff"/><circle cx="98.3" cy="89.6" r="1.1" fill="#fff"/>
+    <path d="M69 105 Q80 101 91 105" stroke="#2B2A3D" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <circle cx="122" cy="42" r="11" fill="#fff" opacity="0.85"/><circle cx="132" cy="26" r="6.5" fill="#fff" opacity="0.85"/><circle cx="139" cy="16" r="3.5" fill="#fff" opacity="0.85"/>
+  </svg>`
+};
+const REFLECT_SVG = {
+  chiongster:CHAR_SVG.chiongster, kopi:CHAR_SVG.kopi, umbrella:CHAR_SVG.umbrella, myna:CHAR_SVG.myna,
+  general:CHAR_SVG.general, trolley:CHAR_SVG.trolley, otter:CHAR_SVG.otter, philosopher:CHAR_SVG.philosopher
+};
+
+const PERSONALITIES = [
+  { id:'chiongster', name:'The Slipper Chiongster', tagline:"Can one lah.",
+    desc:"You move fast and decide even faster. When something happens, you're already three steps into a plan before everyone else has finished reading the alert.",
+    superEmoji:'⚡', superText:"Decisive action — you don't freeze when it matters.",
+    remember:"Take one extra second to assess before you act — speed is great, but floodwater can be deeper or faster than it looks.",
+    centroid:{A:2,S:9,C:3,P:1}, svg:'chiongster',
+    vibesWith:[
+      { id:'trolley', reason:"Both of you just get things done, no committee meeting required." },
+      { id:'general', reason:"Two fast movers who rally the group instead of overthinking it." }
+    ],
+    clashWith:[
+      { id:'otter', reason:"You've already moved on while Otter is still quietly studying the situation." },
+      { id:'philosopher', reason:"You want to act now. Philosopher wants to discuss it for a bit longer." }
+    ] },
+  { id:'kopi', name:'The Steady Kopi', tagline:"Steady lah. No need to panic.",
+    desc:"Calm, composed, unbothered. While everyone else is scrambling, you're quietly assessing the situation with the energy of someone who has seen worse Mondays.",
+    superEmoji:'🧊', superText:"Keeping a cool head when things get chaotic.",
+    remember:"Your calm is a strength — just don't let 'steady' tip into waiting too long to act when water is actually rising.",
+    centroid:{A:8,S:2,C:4,P:5}, svg:'kopi',
+    vibesWith:[
+      { id:'otter', reason:"Two quiet observers who notice everything without needing to announce it." },
+      { id:'philosopher', reason:"Mutual respect for taking a moment to actually think things through." }
+    ],
+    clashWith:[
+      { id:'general', reason:"Their urgent group-chat energy is a lot for your steady-lah pace." },
+      { id:'trolley', reason:"They want everyone moving right now. You'd like to finish your kopi first." }
+    ] },
+  { id:'umbrella', name:'The Kiasu Umbrella', tagline:"I brought an umbrella. And another umbrella.",
+    desc:"You saw this coming. You always see this coming. While others are caught off guard, you've already got a plan, a backup plan, and possibly a backup for the backup.",
+    superEmoji:'🎒', superText:"Thinking ahead before anyone else even notices the clouds.",
+    remember:"Your prep game is strong — just don't let over-preparing slow you down when a situation calls for a quick decision.",
+    centroid:{A:6,S:1,C:3,P:9}, svg:'umbrella',
+    vibesWith:[
+      { id:'philosopher', reason:"Both of you like to think a few steps ahead before committing." },
+      { id:'trolley', reason:"Two practical planners who make sure everything's actually sorted." }
+    ],
+    clashWith:[
+      { id:'otter', reason:"You've already moved to step three while Otter is still curiously inspecting step one." },
+      { id:'general', reason:"They want to blast the group chat now. You'd rather finish the checklist first." }
+    ] },
+  { id:'myna', name:'The Kaypoh Myna', tagline:"Eh what happened there?",
+    desc:"You notice things quickly, keep an eye on what's happening around you, and usually know when something feels off before it's officially A Situation.",
+    superEmoji:'👀', superText:"You notice the signs before everyone else does.",
+    remember:"Don't enter floodwater just to investigate — it can hide hazards and may be deeper or faster-moving than it looks.",
+    centroid:{A:9,S:4,C:7,P:4}, svg:'myna',
+    vibesWith:[
+      { id:'general', reason:"You spot it, they spread the word — a solid noticing-and-broadcasting duo." },
+      { id:'otter', reason:"A fellow curious observer who's always down to figure out what's going on." }
+    ],
+    clashWith:[
+      { id:'philosopher', reason:"You want the answer now. They want to ponder the question a while longer." },
+      { id:'trolley', reason:"They're already moving things while you're still asking what happened." }
+    ] },
+  { id:'general', name:'The Group Chat General', tagline:"GUYS. IMPORTANT.",
+    desc:"The moment something happens, you're already typing. You rally people, share updates, and somehow become the unofficial newsroom of every group chat you're in.",
+    superEmoji:'📣', superText:"Rallying everyone together when it matters most.",
+    remember:"Keep the updates coming — just make sure you're also acting on the warnings you send to others.",
+    centroid:{A:4,S:6,C:9,P:3}, svg:'general',
+    vibesWith:[
+      { id:'chiongster', reason:"Two fast movers who rally the group instead of overthinking it." },
+      { id:'myna', reason:"You spread the word, they spot it first — a solid noticing-and-broadcasting duo." }
+    ],
+    clashWith:[
+      { id:'kopi', reason:"Your urgent group-chat energy is a lot for their steady-lah pace." },
+      { id:'umbrella', reason:"You'd rather blast the update now. They'd rather finish the checklist first." }
+    ] },
+  { id:'trolley', name:'The Auntie Trolley', tagline:"Don't stand there. Come, move.",
+    desc:"Practical, resourceful, and always two steps ahead on logistics. You're the one moving things to higher ground while everyone else is still discussing what to do.",
+    superEmoji:'🧺', superText:"Getting things sorted while everyone else is still deciding.",
+    remember:"Your instinct to act is great — just pause for a moment to check the situation is actually safe before diving in.",
+    centroid:{A:5,S:5,C:6,P:8}, svg:'trolley',
+    vibesWith:[
+      { id:'umbrella', reason:"Two practical planners who make sure everything's actually sorted." },
+      { id:'chiongster', reason:"Both of you just get things done, no committee meeting required." }
+    ],
+    clashWith:[
+      { id:'kopi', reason:"You want everyone moving right now. They'd like to finish their kopi first." },
+      { id:'myna', reason:"You're already moving things while they're still asking what happened." }
+    ] },
+  { id:'otter', name:'The Longkang Otter', tagline:"Wait wait. Let me see.",
+    desc:"Endlessly curious and quietly observant. You like to understand what's going on before doing anything about it — the details matter to you.",
+    superEmoji:'🔍', superText:"Noticing the small details everyone else walks past.",
+    remember:"Curiosity is great, but resist the urge to get closer to floodwater just to see it better.",
+    centroid:{A:8,S:3,C:3,P:2}, svg:'otter',
+    vibesWith:[
+      { id:'myna', reason:"A fellow curious observer who's always down to figure out what's going on." },
+      { id:'kopi', reason:"Two quiet observers who notice everything without needing to announce it." }
+    ],
+    clashWith:[
+      { id:'chiongster', reason:"You're still quietly studying the situation while they've already moved on." },
+      { id:'umbrella', reason:"You're curiously inspecting step one while they've already moved to step three." }
+    ] },
+  { id:'philosopher', name:'The Void Deck Philosopher', tagline:"Hmm. Let's think about this.",
+    desc:"Thoughtful and analytical, you like to weigh the options before committing to anything. Every situation deserves proper consideration, in your opinion.",
+    superEmoji:'💭', superText:"Considering angles other people don't think to look for.",
+    remember:"Sometimes the situation needs quick action rather than another round of thinking — trust your read and move when it counts.",
+    centroid:{A:6,S:0,C:2,P:4}, svg:'philosopher',
+    vibesWith:[
+      { id:'kopi', reason:"Mutual respect for taking a moment to actually think things through." },
+      { id:'umbrella', reason:"Both of you like to think a few steps ahead before committing." }
+    ],
+    clashWith:[
+      { id:'myna', reason:"They want the answer now. You'd like to ponder the question a while longer." },
+      { id:'chiongster', reason:"They want to act now. You'd like to discuss it for a bit longer." }
+    ] }
+];
+
+/* Update this to your live URL once deployed (used on the share card + native share link) */
+const SITE_URL = 'https://valorene.github.io/flood-personality-quiz/';
+
+/* ========================= App state & logic ========================= */
+let currentQ = 0;
+let selectedThisQ = null;
+const totals = {A:0,S:0,C:0,P:0};
+const maxTotals = {A:0,S:0,C:0,P:0};
+QUESTIONS.forEach(q=>{
+  ['A','S','C','P'].forEach(dim=>{
+    const m = Math.max(...q.answers.map(a=>a.v[dim]));
+    maxTotals[dim]+=m;
+  });
+});
+
+function spawnRain(){
+  const layer = document.getElementById('rainDrops');
+  // rain drops drawn as CSS elements over the scene for perf/simplicity
+  const wrap = document.querySelector('.scene-wrap');
+  for(let i=0;i<26;i++){
+    const d = document.createElement('div');
+    d.className='drop';
+    d.style.left = (Math.random()*100)+'%';
+    d.style.animationDuration = (0.6+Math.random()*0.7)+'s';
+    d.style.animationDelay = (Math.random()*1.2)+'s';
+    d.style.opacity = 0.3+Math.random()*0.5;
+    wrap.appendChild(d);
+  }
+}
+spawnRain();
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+document.getElementById('startBtn').addEventListener('click', ()=>{
+  showScreen('quiz');
+  renderQuestion();
+});
+
+function renderQuestion(){
+  selectedThisQ = null;
+  const q = QUESTIONS[currentQ];
+  document.getElementById('progressLabel').textContent = `${currentQ+1} / ${QUESTIONS.length}`;
+  document.getElementById('progressFill').style.width = ((currentQ)/QUESTIONS.length*100)+'%';
+  document.getElementById('qIconWrap').innerHTML = ICONS[q.icon];
+  document.getElementById('qScenario').textContent = q.scenario;
+
+  const wrap = document.getElementById('answersWrap');
+  wrap.innerHTML = '';
+  q.answers.forEach((ans, idx)=>{
+    const btn = document.createElement('button');
+    btn.className='answer-btn';
+    btn.type='button';
+    btn.textContent = ans.text;
+    btn.setAttribute('aria-pressed','false');
+    btn.addEventListener('click', ()=>selectAnswer(idx));
+    wrap.appendChild(btn);
+  });
+
+  document.getElementById('feedback').classList.remove('show');
+  document.getElementById('nextBtn').classList.remove('show');
+}
+
+function selectAnswer(idx){
+  if(selectedThisQ !== null) return; // lock after first choice
+  selectedThisQ = idx;
+  const q = QUESTIONS[currentQ];
+  const ans = q.answers[idx];
+
+  // add to totals
+  ['A','S','C','P'].forEach(dim=> totals[dim]+=ans.v[dim]);
+
+  const buttons = document.querySelectorAll('#answersWrap .answer-btn');
+  buttons.forEach((b,i)=>{
+    b.disabled = true;
+    b.setAttribute('aria-pressed', i===idx ? 'true':'false');
+    if(i===idx){ b.classList.add('selected'); }
+    else{ b.classList.add('dimmed'); }
+  });
+
+  document.getElementById('reactionText').textContent = ans.reaction;
+  document.getElementById('tipText').textContent = ans.tip;
+  document.getElementById('feedback').classList.add('show');
+  document.getElementById('nextBtn').classList.add('show');
+  document.getElementById('progressFill').style.width = ((currentQ+1)/QUESTIONS.length*100)+'%';
+}
+
+document.getElementById('nextBtn').addEventListener('click', ()=>{
+  if(selectedThisQ === null) return;
+  currentQ++;
+  if(currentQ >= QUESTIONS.length){
+    startReveal();
+  } else {
+    renderQuestion();
+  }
+});
+
+const REVEAL_MESSAGES = [
+  "Calculating your flood personality…",
+  "Consulting the drains…",
+  "Reading the puddles…",
+  "Cross-checking your kiasu-ness…",
+  "Almost there…"
+];
+
+function startReveal(){
+  showScreen('reveal');
+  const textEl = document.getElementById('revealText');
+  let i = 0;
+  textEl.textContent = REVEAL_MESSAGES[0];
+  const interval = setInterval(()=>{
+    i = (i+1) % REVEAL_MESSAGES.length;
+    textEl.style.opacity = 0;
+    setTimeout(()=>{ textEl.textContent = REVEAL_MESSAGES[i]; textEl.style.opacity = 1; }, 180);
+  }, 480);
+
+  setTimeout(()=>{
+    clearInterval(interval);
+    showResult();
+  }, 1900);
+}
+
+const PERSONALITIES_BY_ID = {};
+PERSONALITIES.forEach(p=> PERSONALITIES_BY_ID[p.id] = p);
+
+/* Short "in a flood, this personality would probably..." phrases — combined
+   pairwise at runtime so every personality combo gets a sensible line
+   without hand-writing all 64 pairs. */
+const TEAM_LINE = {
+  chiongster: "already be halfway there before everyone else finished reading the alert",
+  kopi: "calmly suggest everyone take a breath first",
+  umbrella: "already have three backup plans and a spare umbrella",
+  myna: "probably notice the problem first",
+  general: "already have the group chat blowing up with updates",
+  trolley: "already be moving your stuff to higher ground",
+  otter: "be quietly studying exactly how deep the water is",
+  philosopher: "still be weighing the pros and cons out loud"
+};
+const TRAIT_LABEL = { A:'observant', S:'spontaneous', C:'community-minded', P:'prepared' };
+
+let referrerData = null;
+(function parseReferrerFromURL(){
+  const params = new URLSearchParams(window.location.search);
+  const rid = params.get('r');
+  if(rid && PERSONALITIES_BY_ID[rid]){
+    const clampPct = v=>{ const n=parseInt(v,10); return isNaN(n) ? 50 : Math.max(0,Math.min(100,n)); };
+    referrerData = {
+      name: params.get('n') ? decodeURIComponent(params.get('n')).slice(0,24) : 'A friend',
+      id: rid,
+      pct: { A:clampPct(params.get('a')), S:clampPct(params.get('s')), C:clampPct(params.get('c')), P:clampPct(params.get('pr')) }
+    };
+  }
+})();
+
+function applyChallengeBanner(){
+  if(!referrerData) return;
+  const other = PERSONALITIES_BY_ID[referrerData.id];
+  document.getElementById('challengeAvatar').innerHTML = CHAR_SVG[other.svg];
+  document.getElementById('challengeName').textContent = referrerData.name;
+  document.getElementById('challengePersonality').textContent = other.name;
+  document.getElementById('challengeBanner').style.display = 'flex';
+  document.getElementById('landingKicker').textContent = 'You have been challenged';
+  document.getElementById('startBtn').textContent = "TAKE THE CHALLENGE →";
+}
+applyChallengeBanner();
+
+function renderCompare(myResult, myPct){
+  const section = document.getElementById('compareSection');
+  if(!referrerData){ section.style.display = 'none'; return; }
+  const other = PERSONALITIES_BY_ID[referrerData.id];
+
+  document.getElementById('cmpName').textContent = referrerData.name;
+  document.getElementById('cmpYouChar').innerHTML = CHAR_SVG[myResult.svg];
+  document.getElementById('cmpThemChar').innerHTML = CHAR_SVG[other.svg];
+  document.getElementById('cmpYouName').textContent = myResult.name;
+  document.getElementById('cmpThemName').textContent = other.name;
+  document.getElementById('cmpThemLabel').textContent = referrerData.name;
+
+  if(myResult.id === other.id){
+    document.getElementById('cmpTraitYou').textContent = `You're both ${myResult.name}s.`;
+    document.getElementById('cmpTraitThem').textContent = `Scarily similar instincts.`;
+    document.getElementById('cmpScenario').textContent =
+      `In a flood, you'd probably end up doing the exact same thing at the exact same time. Efficient. Slightly unsettling.`;
+  } else {
+    let bestYouKey=null, bestYouDiff=-Infinity, bestThemKey=null, bestThemDiff=-Infinity;
+    ['A','S','C','P'].forEach(k=>{
+      const diff = myPct[k]-referrerData.pct[k];
+      if(diff>bestYouDiff){ bestYouDiff=diff; bestYouKey=k; }
+      if(-diff>bestThemDiff){ bestThemDiff=-diff; bestThemKey=k; }
+    });
+    document.getElementById('cmpTraitYou').textContent = `You: more ${TRAIT_LABEL[bestYouKey]}`;
+    document.getElementById('cmpTraitThem').textContent = `${referrerData.name}: more ${TRAIT_LABEL[bestThemKey]}`;
+    document.getElementById('cmpScenario').textContent =
+      `${referrerData.name} would probably ${TEAM_LINE[other.id]}. You'd probably ${TEAM_LINE[myResult.id]}. 😭`;
+  }
+  section.style.display = 'block';
+}
+
+function renderCompatRow(wrapId, list, isClash){
+  const wrap = document.getElementById(wrapId);
+  wrap.innerHTML = '';
+  list.forEach(entry=>{
+    const other = PERSONALITIES_BY_ID[entry.id];
+    const row = document.createElement('div');
+    row.className = 'compat-row' + (isClash ? ' clash' : '');
+    row.innerHTML = `
+      <div class="compat-avatar">${CHAR_SVG[other.svg]}</div>
+      <div class="compat-text">
+        <span class="compat-name">${other.name}</span>
+        <span class="compat-reason">${entry.reason}</span>
+      </div>`;
+    wrap.appendChild(row);
+  });
+}
+
+function renderCompactCompatRow(wrapId, list){
+  const wrap = document.getElementById(wrapId);
+  wrap.innerHTML = '';
+  list.forEach(entry=>{
+    const other = PERSONALITIES_BY_ID[entry.id];
+    const item = document.createElement('div');
+    item.className = 'ex-compat-item';
+    item.innerHTML = `
+      <div class="ex-compat-avatar">${CHAR_SVG[other.svg]}</div>
+      <span class="ex-compat-name">${other.name}</span>`;
+    wrap.appendChild(item);
+  });
+}
+
+function nearestPersonality(profile10){
+  let best=null, bestDist=Infinity;
+  PERSONALITIES.forEach(p=>{
+    const d = Math.sqrt(
+      Math.pow(profile10.A-p.centroid.A,2)+
+      Math.pow(profile10.S-p.centroid.S,2)+
+      Math.pow(profile10.C-p.centroid.C,2)+
+      Math.pow(profile10.P-p.centroid.P,2)
+    );
+    if(d<bestDist){ bestDist=d; best=p; }
+  });
+  return best;
+}
+
+function showResult(){
+  const pct = {}, ten = {};
+  ['A','S','C','P'].forEach(dim=>{
+    pct[dim] = Math.round((totals[dim]/maxTotals[dim])*100);
+    ten[dim] = (totals[dim]/maxTotals[dim])*10;
+  });
+
+  const result = nearestPersonality(ten);
+
+  document.getElementById('charSlot').innerHTML = CHAR_SVG[result.svg].replace('<svg ', '<svg class="character" ');
+  const reflWrap = document.createElement('div');
+  reflWrap.innerHTML = REFLECT_SVG[result.svg].replace('<svg ', '<svg class="reflection" ');
+  document.getElementById('charSlot').appendChild(reflWrap.firstChild);
+
+  document.getElementById('resultName').textContent = result.name;
+  document.getElementById('resultTagline').textContent = '“'+result.tagline+'”';
+  document.getElementById('resultDesc').textContent = result.desc;
+  document.getElementById('superEmoji').textContent = result.superEmoji;
+  document.getElementById('superText').textContent = result.superText;
+  document.getElementById('rememberText').textContent = result.remember;
+
+  renderCompatRow('vibesWrap', result.vibesWith, false);
+  renderCompatRow('clashWrap', result.clashWith, true);
+  renderCompare(result, pct);
+
+  document.getElementById('dimAVal').textContent = pct.A+'%';
+  document.getElementById('dimSVal').textContent = pct.S+'%';
+  document.getElementById('dimCVal').textContent = pct.C+'%';
+  document.getElementById('dimPVal').textContent = pct.P+'%';
+
+  // reset bar widths so they can animate fresh even on repeat plays
+  ['dimA','dimS','dimC','dimP'].forEach(id=> document.getElementById(id).style.width = '0%');
+
+  showScreen('result');
+  triggerStagger();
+  requestAnimationFrame(()=>{
+    setTimeout(()=>{
+      document.getElementById('dimA').style.width = pct.A+'%';
+      document.getElementById('dimS').style.width = pct.S+'%';
+      document.getElementById('dimC').style.width = pct.C+'%';
+      document.getElementById('dimP').style.width = pct.P+'%';
+    }, 380);
+  });
+
+  window.__lastResult = result;
+  window.__lastPct = pct;
+}
+
+function triggerStagger(){
+  const items = document.querySelectorAll('#resultCard .stagger-item');
+  items.forEach((el,i)=>{
+    el.getAnimations && el.getAnimations().forEach(a=>a.cancel());
+    el.animate(
+      [
+        { opacity:0, transform:'translateY(14px)' },
+        { opacity:1, transform:'translateY(0)' }
+      ],
+      { duration:480, delay:i*90, easing:'cubic-bezier(.2,.8,.3,1)', fill:'both' }
+    );
+  });
+}
+
+document.getElementById('retakeBtn').addEventListener('click', ()=>{
+  currentQ = 0;
+  ['A','S','C','P'].forEach(d=>totals[d]=0);
+  showScreen('landing');
+});
+
+function buildChallengeUrl(name, result, pct){
+  const params = new URLSearchParams();
+  params.set('r', result.id);
+  params.set('n', name || 'A friend');
+  params.set('a', Math.round(pct.A));
+  params.set('s', Math.round(pct.S));
+  params.set('c', Math.round(pct.C));
+  params.set('pr', Math.round(pct.P));
+  const base = SITE_URL.endsWith('/') ? SITE_URL : SITE_URL + '/';
+  return base + '?' + params.toString();
+}
+
+document.getElementById('shareBtn').addEventListener('click', async ()=>{
+  const result = window.__lastResult;
+  const pct = window.__lastPct;
+  const statusEl = document.getElementById('shareStatus');
+  if(!result || !pct) return;
+
+  const nameInput = document.getElementById('yourName');
+  const yourName = (nameInput.value || '').trim().slice(0,24);
+  const challengeUrl = buildChallengeUrl(yourName, result, pct);
+  const displayName = yourName || 'Someone';
+
+  // populate hidden export card
+  document.getElementById('exCharSlot').innerHTML = CHAR_SVG[result.svg];
+  document.getElementById('exName').textContent = result.name;
+  document.getElementById('exTag').textContent = '“'+result.tagline+'”';
+  document.getElementById('exDesc').textContent = result.desc;
+  document.getElementById('exSuper').textContent = result.superEmoji+' '+result.superText;
+  document.getElementById('exRemember').textContent = result.remember;
+  document.getElementById('exUrl').textContent = SITE_URL.replace(/^https?:\/\//,'').replace(/\/$/,'');
+  renderCompactCompatRow('exVibesWrap', result.vibesWith);
+  renderCompactCompatRow('exClashWrap', result.clashWith);
+
+  statusEl.textContent = 'Preparing your card…';
+
+  try{
+    const canvas = await html2canvas(document.getElementById('exportCard'), {backgroundColor:null, scale:2});
+    canvas.toBlob(async (blob)=>{
+      const file = new File([blob], 'flood-personality.png', {type:'image/png'});
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        try{
+          await navigator.share({
+            files:[file],
+            title:"What's your flood personality?",
+            text:`${displayName} got ${result.name}! ${result.tagline} What's yours?`,
+            url: challengeUrl
+          });
+          statusEl.textContent = '';
+          return;
+        }catch(e){ /* user cancelled or failed, fall through to download */ }
+      }
+      // fallback: download image + copy the personalized link
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'flood-personality.png';
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+      try{
+        await navigator.clipboard.writeText(challengeUrl);
+        statusEl.textContent = 'Saved! Your personalized link was copied — paste it along with the photo.';
+      }catch(e){
+        statusEl.textContent = 'Saved! Share it from your photos.';
+      }
+    }, 'image/png');
+  }catch(err){
+    statusEl.textContent = "Couldn't generate the image — try a screenshot instead!";
+  }
+});
+</script>
+</body>
+</html>
